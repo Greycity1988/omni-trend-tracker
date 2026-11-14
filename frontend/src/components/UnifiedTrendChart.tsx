@@ -46,12 +46,12 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
   }));
 
   return (
-    <div className="bg-surface rounded-3xl border border-line shadow-soft-sm p-6 sm:p-8 space-y-6">
+    <div className="bg-white/85 backdrop-blur-xl rounded-3xl border border-black/[0.06] shadow-lifemed p-6 sm:p-8 space-y-6">
       {/* Chart Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/[0.05]">
         <div>
           <div className="flex items-center space-x-2">
-            <Layers className="w-5 h-5 text-accent" />
+            <Layers className="w-5 h-5 text-ink-primary" />
             <h3 className="text-lg font-bold tracking-tight text-ink-primary">
               플랫폼 통합 검색 관심도 추이
             </h3>
@@ -68,10 +68,10 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('naver')}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.naver
                   ? 'bg-[#03C75A]/10 text-[#03C75A] border-[#03C75A]/30 font-bold'
-                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+                  : 'bg-white text-ink-muted border-black/[0.06] opacity-60'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#03C75A]" />
@@ -83,10 +83,10 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('google')}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.google
                   ? 'bg-[#4285F4]/10 text-[#4285F4] border-[#4285F4]/30 font-bold'
-                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+                  : 'bg-white text-ink-muted border-black/[0.06] opacity-60'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
@@ -98,10 +98,10 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('pinterest')}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.pinterest
                   ? 'bg-[#E60023]/10 text-[#E60023] border-[#E60023]/30 font-bold'
-                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+                  : 'bg-white text-ink-muted border-black/[0.06] opacity-60'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#E60023]" />
@@ -113,10 +113,10 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('meta')}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.meta
                   ? 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 font-bold'
-                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+                  : 'bg-white text-ink-muted border-black/[0.06] opacity-60'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#E1306C]" />
@@ -132,42 +132,42 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
           <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorNaver" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#03C75A" stopOpacity={0.25} />
+                <stop offset="5%" stopColor="#03C75A" stopOpacity={0.22} />
                 <stop offset="95%" stopColor="#03C75A" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorGoogle" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#4285F4" stopOpacity={0.25} />
+                <stop offset="5%" stopColor="#4285F4" stopOpacity={0.22} />
                 <stop offset="95%" stopColor="#4285F4" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorPin" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#E60023" stopOpacity={0.25} />
+                <stop offset="5%" stopColor="#E60023" stopOpacity={0.22} />
                 <stop offset="95%" stopColor="#E60023" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorMeta" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#E1306C" stopOpacity={0.25} />
+                <stop offset="5%" stopColor="#E1306C" stopOpacity={0.22} />
                 <stop offset="95%" stopColor="#E1306C" stopOpacity={0.0} />
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E8E4" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
             <XAxis
               dataKey="displayDate"
               tickLine={false}
               axisLine={false}
-              tick={{ fill: '#7E8B85', fontSize: 11 }}
+              tick={{ fill: '#71717A', fontSize: 11 }}
             />
             <YAxis
               domain={[0, 100]}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: '#7E8B85', fontSize: 11 }}
+              tick={{ fill: '#71717A', fontSize: 11 }}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #E8E8E4',
-                boxShadow: '0 8px 18px -3px rgba(17, 24, 21, 0.08)',
+                borderRadius: '20px',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.08)',
                 fontSize: '12px',
                 padding: '12px 14px',
               }}

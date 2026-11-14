@@ -22,22 +22,22 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenDonation,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-line/90 transition-all">
+    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-3">
         {/* Brand Logo & Name */}
         <div className="flex items-center space-x-3 sm:space-x-3.5">
-          <div className="p-1 rounded-2xl bg-canvas hover:bg-canvas-subtle border border-line transition-all flex-shrink-0">
-            <OTTLogo size={42} showText={false} />
+          <div className="p-1.5 rounded-2xl bg-white hover:bg-neutral-50 border border-black/[0.06] hover:border-black/15 transition-all flex-shrink-0 shadow-soft-xs">
+            <OTTLogo size={40} showText={false} />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono font-bold tracking-wider text-accent bg-accent-light px-2 py-0.5 rounded-md border border-accent/15">
+              <span className="text-xs font-mono font-bold tracking-wider text-white bg-[#0A0A0A] px-2 py-0.5 rounded-md shadow-soft-xs">
                 OTT
               </span>
-              <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-ink-primary">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-ink-primary">
                 Omni Trend Tracker
               </h1>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-canvas-subtle border border-line text-ink-secondary">
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-black/[0.04] border border-black/[0.06] text-ink-secondary">
                 v1.1 Pro
               </span>
             </div>
@@ -54,10 +54,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenGuide}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-canvas-subtle border border-line text-xs font-semibold text-ink-secondary hover:text-ink-primary transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-medium text-ink-secondary hover:text-ink-primary transition-all cursor-pointer shadow-soft-xs"
               title="사용 가이드 및 데이터 해석 기준 보기"
             >
-              <BookOpen className="w-3.5 h-3.5 text-accent" />
+              <BookOpen className="w-3.5 h-3.5 text-ink-tertiary" />
               <span className="hidden md:inline">가이드</span>
             </button>
           )}
@@ -67,10 +67,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenFeedback}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-canvas-subtle border border-line text-xs font-semibold text-ink-secondary hover:text-ink-primary transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-medium text-ink-secondary hover:text-ink-primary transition-all cursor-pointer shadow-soft-xs"
               title="기능 제안 및 건의사항 남기기"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-accent" />
+              <MessageSquare className="w-3.5 h-3.5 text-ink-tertiary" />
               <span className="hidden md:inline">건의하기</span>
             </button>
           )}
@@ -80,10 +80,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenDonation}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#FFDD00]/15 hover:bg-[#FFDD00]/25 text-amber-900 dark:text-amber-300 border border-amber-300/40 dark:border-amber-700/40 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-amber-50/80 hover:bg-amber-100/80 text-amber-900 border border-amber-200/70 text-xs font-semibold transition-all cursor-pointer shadow-soft-xs"
               title="개발자 커피 후원하기"
             >
-              <Coffee className="w-3.5 h-3.5 text-amber-600 dark:text-[#FFDD00]" />
+              <Coffee className="w-3.5 h-3.5 text-amber-600" />
               <span className="hidden sm:inline">커피 후원</span>
             </button>
           )}
@@ -93,10 +93,10 @@ export const Header: React.FC<HeaderProps> = ({
             href={ACV_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-accent text-white hover:bg-accent/90 border border-accent text-xs font-bold transition-all shadow-soft-xs cursor-pointer ml-1"
+            className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[#0A0A0A] text-white hover:bg-neutral-800 border border-black text-xs font-bold transition-all shadow-soft-xs cursor-pointer ml-1"
             title="32대 매체 430+ 지면 광고 소재 규격 자동 검수 도구(ACV)로 이동"
           >
-            <Sparkles className="w-3.5 h-3.5 text-accent-mint" />
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span className="font-mono">ACV</span>
             <span className="hidden lg:inline font-sans font-semibold">소재 검수</span>
             <ExternalLink className="w-3 h-3 text-white/80" />
@@ -107,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
             href="https://github.com/Greycity1988/omni-trend-tracker"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:inline-flex items-center space-x-1.5 p-2 rounded-xl bg-surface hover:bg-canvas-subtle border border-line text-ink-secondary hover:text-ink-primary transition-all shadow-2xs"
+            className="hidden sm:inline-flex items-center space-x-1.5 p-2 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-ink-secondary hover:text-ink-primary transition-all shadow-soft-xs"
             title="GitHub 저장소"
           >
             <Github className="w-4 h-4" />

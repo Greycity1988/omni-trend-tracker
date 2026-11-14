@@ -29,10 +29,10 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
           return (
             <div
               key={p.platform}
-              className="bg-surface rounded-3xl border border-line shadow-soft-xs hover:shadow-soft-sm transition-all p-6 space-y-5"
+              className="bg-white/85 backdrop-blur-xl rounded-3xl border border-black/[0.06] shadow-lifemed hover:shadow-soft-md transition-all p-6 space-y-5"
             >
               {/* Card Header */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-line/60">
+              <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.05]">
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl" role="img" aria-label={p.display_name}>
                     {p.icon}
@@ -41,10 +41,10 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                     <h4 className="text-sm font-bold text-ink-primary flex items-center flex-wrap gap-x-2 gap-y-1">
                       <span>{p.display_name}</span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                           p.is_live
-                            ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
-                            : 'bg-canvas-subtle text-ink-muted border-line'
+                            ? 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20'
+                            : 'bg-black/[0.04] text-neutral-600 border-black/[0.08]'
                         }`}
                       >
                         {p.is_live ? '실제 데이터' : '예시 데이터'}
@@ -58,7 +58,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
 
                 {/* Change Pill */}
                 <div
-                  className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-mono font-semibold ${
+                  className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-mono font-semibold ${
                     isRising
                       ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
@@ -71,7 +71,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
 
               {/* 2 Key Metrics */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-canvas-subtle/60 p-3.5 rounded-2xl border border-line">
+                <div className="bg-neutral-50/70 p-3.5 rounded-2xl border border-black/[0.04]">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
                     {p.primary_metric_label}
                   </span>
@@ -80,7 +80,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   </span>
                 </div>
 
-                <div className="bg-canvas-subtle/60 p-3.5 rounded-2xl border border-line">
+                <div className="bg-neutral-50/70 p-3.5 rounded-2xl border border-black/[0.04]">
                   <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
                     {p.secondary_metric_label}
                   </span>
@@ -99,7 +99,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   {p.top_related_keywords.map((kw, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 rounded-xl text-xs font-medium bg-canvas-subtle text-ink-secondary border border-line hover:border-line-strong transition-colors"
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-neutral-100/70 text-ink-secondary border border-black/[0.04] hover:border-black/20 hover:bg-neutral-100 transition-colors"
                     >
                       {kw}
                     </span>

@@ -8,32 +8,33 @@ export default {
     extend: {
       colors: {
         canvas: {
-          DEFAULT: '#F8F8F6',
-          subtle: '#F2F2EF',
-          muted: '#EAEAE5',
+          DEFAULT: '#FFFFFF',
+          subtle: '#F8FAFC',
+          muted: '#F1F5F9',
         },
         surface: {
           DEFAULT: '#FFFFFF',
           raised: '#FFFFFF',
-          overlay: 'rgba(255, 255, 255, 0.95)',
+          overlay: 'rgba(255, 255, 255, 0.85)',
+          glass: 'rgba(255, 255, 255, 0.82)',
         },
         line: {
-          subtle: '#F0F0EC',
-          DEFAULT: '#E8E8E4',
-          strong: '#D6D6D0',
+          subtle: 'rgba(0, 0, 0, 0.04)',
+          DEFAULT: 'rgba(0, 0, 0, 0.06)',
+          strong: 'rgba(0, 0, 0, 0.12)',
         },
         ink: {
-          primary: '#111815',
-          secondary: '#5A6660',
-          tertiary: '#7E8B85',
-          muted: '#9EABA4',
-          faint: '#D1D8D4',
+          primary: '#0A0A0A',
+          secondary: '#52525B',
+          tertiary: '#71717A',
+          muted: '#A1A1AA',
+          faint: '#E4E4E7',
         },
         accent: {
-          DEFAULT: '#143126',     // Deep Pine Forest
-          hover: '#0E241B',
-          soft: '#EAF0EC',
-          mint: '#10B981',       // High-visibility mint status
+          DEFAULT: '#0A0A0A',     // Lifemed Jet Black
+          hover: '#262626',
+          soft: '#F4F4F5',
+          mint: '#10B981',        // High-visibility mint status
           naver: '#03C75A',
           google: '#4285F4',
           pinterest: '#E60023',
@@ -41,10 +42,11 @@ export default {
         },
       },
       boxShadow: {
-        'soft-xs': '0 1px 2px 0 rgba(17, 24, 21, 0.04)',
-        'soft-sm': '0 2px 6px -1px rgba(17, 24, 21, 0.06), 0 1px 3px -1px rgba(17, 24, 21, 0.04)',
-        'soft-md': '0 8px 18px -3px rgba(17, 24, 21, 0.07), 0 3px 6px -2px rgba(17, 24, 21, 0.04)',
-        'soft-lg': '0 16px 32px -4px rgba(17, 24, 21, 0.08), 0 6px 12px -3px rgba(17, 24, 21, 0.04)',
+        'soft-xs': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        'soft-sm': '0 4px 14px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+        'soft-md': '0 8px 26px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02)',
+        'soft-lg': '0 16px 36px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03)',
+        'lifemed': '0 8px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],

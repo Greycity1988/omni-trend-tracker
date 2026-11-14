@@ -33,14 +33,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
   };
 
   return (
-    <div className="bg-surface rounded-3xl border border-line shadow-soft-sm p-6 sm:p-8 space-y-5 transition-all">
+    <div className="bg-white/85 backdrop-blur-xl rounded-3xl border border-black/[0.06] shadow-lifemed p-6 sm:p-8 space-y-5 transition-all">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-canvas-subtle border border-line text-xs font-semibold text-ink-secondary mb-2.5">
-            <Sparkles className="w-3.5 h-3.5 text-accent-mint" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-black/[0.04] border border-black/[0.06] text-xs font-semibold text-ink-secondary mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
             <span>크로스 플랫폼 키워드 쿼리량 & 트렌드 인텔리전스</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-ink-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink-primary">
             분석할 키워드를 입력하세요
           </h2>
           <p className="text-xs sm:text-sm text-ink-secondary mt-1">
@@ -59,14 +59,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
             onChange={(e) => setInputVal(e.target.value)}
             placeholder="키워드 입력 (예: 선크림, 러닝화, 린넨셔츠...)"
             disabled={isLoading}
-            className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-full border border-line bg-canvas-subtle/60 text-ink-primary placeholder:text-ink-muted text-sm sm:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent focus:bg-surface transition-all shadow-2xs"
+            className="w-full pl-12 pr-4 py-3.5 sm:py-4 rounded-full border border-black/[0.08] bg-white text-ink-primary placeholder:text-neutral-400 text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all shadow-soft-xs"
           />
         </div>
 
         <button
           type="submit"
           disabled={isLoading || !inputVal.trim()}
-          className="ml-2.5 sm:ml-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-accent hover:bg-accent-hover text-white font-bold text-sm tracking-tight transition-all shadow-soft-sm hover:shadow-soft-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-2 flex-shrink-0"
+          className="ml-2.5 sm:ml-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#0A0A0A] hover:bg-neutral-800 text-white font-semibold text-sm tracking-tight transition-all shadow-soft-sm hover:shadow-soft-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-2 flex-shrink-0"
         >
           {isLoading ? (
             <>
@@ -94,10 +94,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
               type="button"
               onClick={() => handleChipClick(kw)}
               disabled={isLoading}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
                 inputVal === kw
-                  ? 'bg-accent text-white border-accent shadow-soft-xs'
-                  : 'bg-surface hover:bg-canvas-subtle text-ink-secondary hover:text-ink-primary border-line'
+                  ? 'bg-[#0A0A0A] text-white border-black shadow-soft-xs'
+                  : 'bg-white hover:bg-neutral-50 text-ink-secondary hover:text-ink-primary border-black/[0.08] hover:border-black/20'
               }`}
             >
               {kw}
