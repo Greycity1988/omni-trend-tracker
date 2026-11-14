@@ -1,11 +1,10 @@
 import json
 import math
-import random
 import datetime
 import urllib.request
 from typing import Dict, Any, List, Optional
 from ..config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
-from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE
+from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 DISPLAY_NAME = "네이버 데이터랩 (Naver DataLab)"
 
@@ -98,10 +97,11 @@ def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
     # Example data if both fail or credentials are missing
     today = datetime.date.today()
     timeline = []
-    base_val = 50 + (abs(hash(keyword)) % 40)
+    rng = example_rng(keyword, "naver")
+    base_val = 50 + rng.randrange(40)
     for i in range(12, -1, -1):
         dt = today - datetime.timedelta(days=i * 30)
-        variation = math.cos((12 - i) * 0.45) * 18 + random.uniform(-3, 5)
+        variation = math.cos((12 - i) * 0.45) * 18 + rng.uniform(-3, 5)
         val = max(10, min(100, round(base_val + variation, 1)))
         timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
 

@@ -1,8 +1,7 @@
 import math
-import random
 import datetime
 from typing import Dict, Any
-from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE
+from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 
 def fetch_pinterest_trend(keyword: str) -> Dict[str, Any]:
@@ -16,10 +15,11 @@ def fetch_pinterest_trend(keyword: str) -> Dict[str, Any]:
     """
     today = datetime.date.today()
     timeline = []
-    base_val = 38 + (abs(hash(keyword + "pin")) % 45)
+    rng = example_rng(keyword, "pinterest")
+    base_val = 38 + rng.randrange(45)
     for i in range(12, -1, -1):
         dt = today - datetime.timedelta(days=i * 30)
-        surge = math.sin((12 - i + 2) * 0.52) * 22 + random.uniform(-4, 5)
+        surge = math.sin((12 - i + 2) * 0.52) * 22 + rng.uniform(-4, 5)
         val = max(5, min(100, round(base_val + surge, 1)))
         timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
 

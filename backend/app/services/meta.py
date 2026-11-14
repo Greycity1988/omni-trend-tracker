@@ -1,9 +1,8 @@
 import math
-import random
 import datetime
 from typing import Dict, Any, List, Optional
 from ..config import META_ACCESS_TOKEN
-from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE
+from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 GRAPH_API = "https://graph.facebook.com/v21.0"
 
@@ -89,10 +88,11 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
 
     today = datetime.date.today()
     timeline = []
-    base_val = 45 + (abs(hash(keyword + "meta")) % 42)
+    rng = example_rng(keyword, "meta")
+    base_val = 45 + rng.randrange(42)
     for i in range(12, -1, -1):
         dt = today - datetime.timedelta(days=i * 30)
-        variation = math.sin((12 - i) * 0.48) * 16 + random.uniform(-5, 5)
+        variation = math.sin((12 - i) * 0.48) * 16 + rng.uniform(-5, 5)
         val = max(8, min(100, round(base_val + variation, 1)))
         timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
 

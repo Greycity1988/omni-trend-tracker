@@ -1,8 +1,7 @@
 import math
-import random
 import datetime
 from typing import Dict, Any, List
-from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE
+from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "KR") -> Dict[str, Any]:
     try:
@@ -58,10 +57,11 @@ def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "
     # Example data when Google Trends cannot be reached
     today = datetime.date.today()
     timeline = []
-    base_val = 40 + (hash(keyword) % 45)
+    rng = example_rng(keyword, "google")
+    base_val = 40 + rng.randrange(45)
     for i in range(12, -1, -1):
         dt = today - datetime.timedelta(days=i * 30)
-        variation = math.sin((12 - i) * 0.5) * 15 + random.uniform(-4, 6)
+        variation = math.sin((12 - i) * 0.5) * 15 + rng.uniform(-4, 6)
         val = max(5, min(100, round(base_val + variation, 1)))
         timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
 

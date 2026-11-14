@@ -2,6 +2,9 @@
 
 Run from backend/:  .venv/bin/python -m unittest discover -s tests -t .
 """
+import os
+import subprocess
+import sys
 import unittest
 from unittest import mock
 
@@ -189,6 +192,19 @@ class MetaTokenHandlingTests(unittest.TestCase):
         get.assert_not_called()
         self.assertFalse(result["is_live"])
         self.assertNotIn("demographics", result)
+
+
+class ExampleDataTests(unittest.TestCase):
+    def test_example_curve_is_the_same_across_processes(self):
+        # Built-in hash() is salted per process; the example curve must not change on restart.
+        code = ("from app.services import pinterest; "
+                "print([p['value'] for p in pinterest.fetch_pinterest_trend('선크림')['timeline']])")
+        runs = {
+            subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                           env={**os.environ, "PYTHONHASHSEED": seed}, check=True).stdout
+            for seed in ("1", "2")
+        }
+        self.assertEqual(len(runs), 1)
 
 
 if __name__ == "__main__":
