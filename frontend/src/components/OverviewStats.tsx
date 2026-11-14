@@ -81,21 +81,21 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
           </div>
         </div>
 
-        {/* Metric 4: Live Data Channels - Lifemed Signature Soft Sage Card (Image 1 style) */}
-        <div className="bg-[#E8F7F0] rounded-2xl border border-[#A7F3D0] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
+        {/* Metric 4: Live Data Channels - Lifemed Violet Highlight Card */}
+        <div className="bg-violet-50/70 rounded-2xl border border-violet-200/80 p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-[#065F46]/80 uppercase">
+            <span className="tracking-wider text-[11px] font-bold text-violet-800 uppercase">
               LIVE DATA CHANNELS
             </span>
-            <TrendingUp className="w-4 h-4 text-[#10B981]" />
+            <TrendingUp className="w-4 h-4 text-violet-600" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-[#065F46]">
+            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-violet-900">
               {liveNames.length} / {channels.length}
             </span>
-            <span className="text-xs text-[#065F46]/80 font-medium">채널</span>
+            <span className="text-xs text-violet-700 font-medium">채널</span>
           </div>
-          <div className="text-[11px] text-[#065F46] font-bold mt-1">
+          <div className="text-[11px] text-violet-700 font-bold mt-1">
             {liveNames.length > 0 ? `실제 데이터: ${liveNames.join(' • ')}` : '실제 데이터 없음 (전부 예시)'}
           </div>
         </div>

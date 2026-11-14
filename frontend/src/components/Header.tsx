@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Github,
   ExternalLink,
   BookOpen,
   MessageSquare,
@@ -47,16 +46,16 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* ── Center Column: Lifemed Style Nav Links (Image 2 style) ── */}
-        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        {/* ── Center Column: Unified Nav Links (ACV와 100% 동일) ── */}
+        <nav className="hidden md:flex items-center space-x-2">
           {onOpenGuide && (
             <button
               type="button"
               onClick={onOpenGuide}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-600 hover:text-black hover:bg-black/[0.04] transition-all cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center space-x-1.5 h-9 px-4 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-semibold text-neutral-700 hover:text-black shadow-soft-xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
               title="사용 가이드 및 데이터 해석 기준 보기"
             >
-              <BookOpen className="w-3.5 h-3.5 text-neutral-400 group-hover:text-black" />
+              <BookOpen className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" />
               <span className="whitespace-nowrap">📖 사용 가이드</span>
             </button>
           )}
@@ -65,11 +64,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenFeedback}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium text-neutral-600 hover:text-black hover:bg-black/[0.04] transition-all cursor-pointer whitespace-nowrap"
-              title="기능 제안 및 건의사항 남기기"
+              className="inline-flex items-center space-x-1.5 h-9 px-4 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-semibold text-neutral-700 hover:text-black shadow-soft-xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+              title="새로운 광고 매체/지면 추가 요청이나 의견을 남겨주세요."
             >
-              <MessageSquare className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="whitespace-nowrap">💡 건의하기</span>
+              <MessageSquare className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <span className="whitespace-nowrap">💡 건의 / 규격 제보</span>
             </button>
           )}
 
@@ -77,28 +76,17 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenDonation}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-amber-900 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center space-x-1.5 h-9 px-4 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-semibold text-neutral-700 hover:text-black shadow-soft-xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
               title="개발자 커피 후원하기"
             >
-              <Coffee className="w-3.5 h-3.5 text-amber-600" />
-              <span className="whitespace-nowrap">☕ 커피 후원</span>
+              <Coffee className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+              <span className="whitespace-nowrap">☕ 커피 후원하기</span>
             </button>
           )}
         </nav>
 
-        {/* ── Right Column: GitHub + Primary Action (Lifemed 'Get Started' style) ── */}
+        {/* ── Right Column: Primary Action (Lifemed 'Get Started' style, GitHub 제거) ── */}
         <div className="flex items-center space-x-2.5 flex-shrink-0">
-          {/* GitHub Icon Link */}
-          <a
-            href="https://github.com/Greycity1988/omni-trend-tracker"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-neutral-600 hover:text-black transition-all shadow-soft-xs flex-shrink-0"
-            title="GitHub 저장소"
-          >
-            <Github className="w-4 h-4" />
-          </a>
-
           {/* ACV Inter-service Link Switcher (Lifemed Jet Black Pill) */}
           <a
             href={ACV_URL}
@@ -107,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="inline-flex items-center space-x-2 h-9 px-4.5 rounded-full bg-[#0A0A0A] hover:bg-neutral-800 text-white text-xs font-bold transition-all shadow-sm hover:shadow-md cursor-pointer whitespace-nowrap flex-shrink-0"
             title="32대 매체 430+ 지면 광고 소재 규격 자동 검수 도구(ACV)로 이동"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#C084FC] flex-shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
             <span className="font-mono">ACV</span>
             <span className="hidden sm:inline whitespace-nowrap font-sans font-semibold">소재 검수</span>
             <ExternalLink className="w-3 h-3 text-white/70 flex-shrink-0" />

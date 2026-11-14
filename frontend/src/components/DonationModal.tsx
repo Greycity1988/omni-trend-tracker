@@ -129,7 +129,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
                   </div>
                 </div>
               </div>
-              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-200/80 px-2.5 py-0.5 rounded-full">
                 해외/국내 카드 지원
               </span>
             </div>
@@ -206,7 +206,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
         {/* Footer */}
         <div className="p-4 border-t border-line bg-canvas-subtle flex items-center justify-between text-xs text-ink-muted flex-shrink-0">
           <div className="flex items-center space-x-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <ShieldCheck className="w-3.5 h-3.5 text-violet-600" />
             <span>Stripe 기반 안전 결제 보호</span>
           </div>
           <button

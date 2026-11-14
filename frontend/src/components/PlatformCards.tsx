@@ -41,10 +41,10 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                     <h4 className="text-sm font-bold text-ink-primary flex items-center flex-wrap gap-x-2 gap-y-1">
                       <span>{p.display_name}</span>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
                           p.is_live
-                            ? 'bg-[#E8F7F0] text-[#065F46] border-[#A7F3D0]'
-                            : 'bg-black/[0.04] text-neutral-600 border-black/[0.08]'
+                            ? 'bg-[#0A0A0A] text-white'
+                            : 'bg-black/[0.04] text-neutral-600 border border-black/[0.08]'
                         }`}
                       >
                         {p.is_live ? '실제 데이터' : '예시 데이터'}
@@ -60,11 +60,11 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                 <div
                   className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-mono font-semibold ${
                     isRising
-                      ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
-                      : 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
+                      ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
                   }`}
                 >
-                  {isRising ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                  {isRising ? <TrendingUp className="w-3.5 h-3.5 text-violet-600" /> : <TrendingDown className="w-3.5 h-3.5 text-rose-600" />}
                   <span>{p.weekly_change_pct > 0 ? `+${p.weekly_change_pct}%` : `${p.weekly_change_pct}%`}</span>
                 </div>
               </div>
