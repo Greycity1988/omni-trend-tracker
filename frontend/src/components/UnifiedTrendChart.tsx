@@ -8,15 +8,16 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { TimelinePoint } from '../types';
+import { PlatformKey, PlatformMetric, TimelinePoint } from '../types';
 import { Layers } from 'lucide-react';
 
 interface UnifiedTrendChartProps {
   timeline: TimelinePoint[];
   keyword: string;
+  platforms: Partial<Record<PlatformKey, PlatformMetric>>;
 }
 
-export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword }) => {
+export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword, platforms }) => {
   const [activeChannels, setActiveChannels] = useState<{
     naver: boolean;
     google: boolean;
@@ -29,9 +30,15 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
     meta: true,
   });
 
-  const toggleChannel = (key: 'naver' | 'google' | 'pinterest' | 'meta') => {
+  const toggleChannel = (key: PlatformKey) => {
     setActiveChannels((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // A channel is drawn only when the backend reports it; example data is marked and dashed
+  const shown = (key: PlatformKey) => Boolean(platforms[key]) && activeChannels[key];
+  const exampleTag = (key: PlatformKey) => (platforms[key]?.is_live ? '' : ' (예시)');
+  const dash = (key: PlatformKey) => (platforms[key]?.is_live ? undefined : '5 4');
+  const hasExample = Object.values(platforms).some((p) => p && !p.is_live);
 
   const formattedData = timeline.map((p) => ({
     ...p,
@@ -46,67 +53,76 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
           <div className="flex items-center space-x-2">
             <Layers className="w-5 h-5 text-accent" />
             <h3 className="text-lg font-bold tracking-tight text-ink-primary">
-              4대 플랫폼 통합 검색 관심도 추이
+              플랫폼 통합 검색 관심도 추이
             </h3>
           </div>
           <p className="text-xs text-ink-secondary mt-1">
-            ‘{keyword}’ 키워드의 지난 12개월간 검색/버즈 관심도를 0~100 스케일로 정규화한 통합 시계열 곡선
+            ‘{keyword}’ 키워드의 지난 12개월간 월별 관심도 (채널마다 자체 최고점을 100으로 환산)
+            {hasExample && ' · 점선은 예시 데이터'}
           </p>
         </div>
 
         {/* Channel Toggles */}
         <div className="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
-          <button
-            type="button"
-            onClick={() => toggleChannel('naver')}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-              activeChannels.naver
-                ? 'bg-[#03C75A]/10 text-[#03C75A] border-[#03C75A]/30 font-bold'
-                : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-[#03C75A]" />
-            <span>네이버 데이터랩</span>
-          </button>
+          {platforms.naver && (
+            <button
+              type="button"
+              onClick={() => toggleChannel('naver')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+                activeChannels.naver
+                  ? 'bg-[#03C75A]/10 text-[#03C75A] border-[#03C75A]/30 font-bold'
+                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#03C75A]" />
+              <span>네이버 데이터랩{exampleTag('naver')}</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => toggleChannel('google')}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-              activeChannels.google
-                ? 'bg-[#4285F4]/10 text-[#4285F4] border-[#4285F4]/30 font-bold'
-                : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-            <span>구글 트렌드</span>
-          </button>
+          {platforms.google && (
+            <button
+              type="button"
+              onClick={() => toggleChannel('google')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+                activeChannels.google
+                  ? 'bg-[#4285F4]/10 text-[#4285F4] border-[#4285F4]/30 font-bold'
+                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
+              <span>구글 트렌드{exampleTag('google')}</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => toggleChannel('pinterest')}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-              activeChannels.pinterest
-                ? 'bg-[#E60023]/10 text-[#E60023] border-[#E60023]/30 font-bold'
-                : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-[#E60023]" />
-            <span>핀터레스트</span>
-          </button>
+          {platforms.pinterest && (
+            <button
+              type="button"
+              onClick={() => toggleChannel('pinterest')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+                activeChannels.pinterest
+                  ? 'bg-[#E60023]/10 text-[#E60023] border-[#E60023]/30 font-bold'
+                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#E60023]" />
+              <span>핀터레스트{exampleTag('pinterest')}</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => toggleChannel('meta')}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-              activeChannels.meta
-                ? 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 font-bold'
-                : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-[#E1306C]" />
-            <span>인스타그램</span>
-          </button>
+          {platforms.meta && (
+            <button
+              type="button"
+              onClick={() => toggleChannel('meta')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+                activeChannels.meta
+                  ? 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 font-bold'
+                  : 'bg-canvas-subtle text-ink-muted border-line opacity-60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#E1306C]" />
+              <span>인스타그램{exampleTag('meta')}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -162,12 +178,12 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                   pinterest: '핀터레스트',
                   meta: '인스타그램',
                 };
-                return [`${val} 점`, labels[name] || name];
+                return [`${val} 점`, (labels[name] || name) + exampleTag(name as PlatformKey)];
               }}
               labelFormatter={(label) => `기간: ${label}`}
             />
 
-            {activeChannels.naver && (
+            {shown('naver') && (
               <Area
                 type="monotone"
                 dataKey="naver"
@@ -175,9 +191,11 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorNaver)"
+                strokeDasharray={dash('naver')}
+                connectNulls
               />
             )}
-            {activeChannels.google && (
+            {shown('google') && (
               <Area
                 type="monotone"
                 dataKey="google"
@@ -185,9 +203,11 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorGoogle)"
+                strokeDasharray={dash('google')}
+                connectNulls
               />
             )}
-            {activeChannels.pinterest && (
+            {shown('pinterest') && (
               <Area
                 type="monotone"
                 dataKey="pinterest"
@@ -195,9 +215,11 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorPin)"
+                strokeDasharray={dash('pinterest')}
+                connectNulls
               />
             )}
-            {activeChannels.meta && (
+            {shown('meta') && (
               <Area
                 type="monotone"
                 dataKey="meta"
@@ -205,6 +227,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorMeta)"
+                strokeDasharray={dash('meta')}
+                connectNulls
               />
             )}
           </AreaChart>

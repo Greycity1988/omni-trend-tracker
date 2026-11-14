@@ -1,9 +1,12 @@
+export type PlatformKey = 'naver' | 'google' | 'pinterest' | 'meta';
+
+/** One point per month (date is YYYY-MM). null: platform is off or has no value that month. */
 export interface TimelinePoint {
   date: string;
-  naver: number;
-  google: number;
-  pinterest: number;
-  meta: number;
+  naver: number | null;
+  google: number | null;
+  pinterest: number | null;
+  meta: number | null;
 }
 
 export interface DemographicsInfo {
@@ -13,11 +16,10 @@ export interface DemographicsInfo {
 }
 
 export interface PlatformMetric {
-  platform: 'naver' | 'google' | 'pinterest' | 'meta';
+  platform: PlatformKey;
   display_name: string;
   icon: string;
   relative_index: number;
-  estimated_monthly_volume?: number;
   weekly_change_pct: number;
   status: 'rising' | 'stable' | 'cooling';
   primary_metric_label: string;
@@ -28,22 +30,27 @@ export interface PlatformMetric {
   demographics?: DemographicsInfo;
   /** true only when the trend values came from the platform for this keyword */
   is_live: boolean;
+  /** true only when top_related_keywords came from the platform */
+  related_keywords_live: boolean;
 }
 
 export interface CrossPlatformKeyword {
   keyword: string;
   platform: string;
-  relevance: number;
+  /** false: a search combination to try, not something the platform reported */
+  is_live: boolean;
 }
 
 export interface OmniTrendResponse {
   keyword: string;
   updated_at: string;
+  /** Worked out from platforms with live data only: '상승' | '하락' | '혼조' | '판단 불가' */
   overall_sentiment: string;
-  dominant_platform: string;
-  total_estimated_reach: number;
+  dominant_platform: string | null;
+  peak_month: string | null;
   summary_insight: string;
   timeline: TimelinePoint[];
-  platforms: Record<string, PlatformMetric>;
+  /** Only the platforms the backend has enabled */
+  platforms: Partial<Record<PlatformKey, PlatformMetric>>;
   cross_platform_keywords: CrossPlatformKeyword[];
 }

@@ -1,13 +1,12 @@
 import asyncio
 import datetime
-import random
 import time
 import unicodedata
-from collections import OrderedDict, deque
+from collections import OrderedDict, defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .config import ALLOWED_ORIGINS
-from .models import OmniTrendResponse, TimelinePoint, PlatformMetric, DemographicsInfo
+from .config import ALLOWED_ORIGINS, ENABLED_PLATFORMS
+from .models import OmniTrendResponse, TimelinePoint, PlatformMetric
 from .services.naver import fetch_naver_trend
 from .services.google import fetch_google_trend
 from .services.pinterest import fetch_pinterest_trend
@@ -30,11 +29,26 @@ app.add_middleware(
 MAX_KEYWORD_LENGTH = 40
 CACHE_TTL_SECONDS = 600
 CACHE_MAX_ENTRIES = 200
-RATE_LIMIT_LOOKUPS = 10   # uncached lookups per client per window (each one calls 4 external APIs)
+RATE_LIMIT_LOOKUPS = 10   # uncached lookups per client per window (each one calls the external platform APIs)
 RATE_LIMIT_WINDOW_SECONDS = 60
 
 _cache: "OrderedDict[str, tuple]" = OrderedDict()
 _lookups: dict = {}
+
+# Resolved at call time so tests can replace the fetchers
+FETCHERS = {
+    "naver": lambda keyword: fetch_naver_trend(keyword),
+    "google": lambda keyword: fetch_google_trend(keyword),
+    "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
+    "meta": lambda keyword: fetch_meta_trend(keyword),
+}
+PLATFORM_NAMES = {
+    "naver": "네이버 데이터랩",
+    "google": "구글 트렌드",
+    "pinterest": "핀터레스트",
+    "meta": "인스타그램",
+}
+PLATFORM_TAGS = {"naver": "네이버", "google": "구글", "pinterest": "핀터", "meta": "인스타"}
 
 
 def normalize_keyword(raw: str) -> str:
@@ -60,6 +74,29 @@ def check_rate_limit(client: str) -> None:
         for key in [k for k, v in _lookups.items() if not v or now - v[-1] > RATE_LIMIT_WINDOW_SECONDS]:
             _lookups.pop(key, None)
 
+def merge_monthly_timeline(results: dict) -> list:
+    """One point per month. Platforms report on different dates (monthly, weekly), so each
+    platform's values are averaged within the month; a month a platform has no value for stays None."""
+    months = defaultdict(lambda: defaultdict(list))
+    for name, res in results.items():
+        for item in res.get("timeline", []):
+            months[item["date"][:7]][name].append(item["value"])
+    return [
+        TimelinePoint(date=month, **{name: round(sum(v) / len(v), 1) for name, v in months[month].items()})
+        for month in sorted(months)
+    ]
+
+
+def find_peak_month(timeline: list, live: dict):
+    """Month with the highest average index across live platforms, or None without live data."""
+    best = None
+    for point in timeline:
+        values = [getattr(point, name) for name in live if getattr(point, name) is not None]
+        if values and (best is None or sum(values) / len(values) > best[0]):
+            best = (sum(values) / len(values), point.date)
+    return best[1] if best else None
+
+
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "service": "omni-trend-tracker-backend", "version": "1.0.0"}
@@ -73,142 +110,74 @@ async def get_omni_trend(keyword: str, request: Request):
         return cached[1]
     check_rate_limit(request.client.host if request.client else "unknown")
 
-    # Run all 4 platform fetchers concurrently in parallel threads
-    naver_res, google_res, pin_res, meta_res = await asyncio.gather(
-        asyncio.to_thread(fetch_naver_trend, keyword),
-        asyncio.to_thread(fetch_google_trend, keyword),
-        asyncio.to_thread(fetch_pinterest_trend, keyword),
-        asyncio.to_thread(fetch_meta_trend, keyword)
+    # Run the enabled platform fetchers concurrently in parallel threads
+    fetched = await asyncio.gather(
+        *(asyncio.to_thread(FETCHERS[name], keyword) for name in ENABLED_PLATFORMS)
     )
+    results = dict(zip(ENABLED_PLATFORMS, fetched))
+    # Everything said about the keyword as a whole rests on live platforms only
+    live = {name: res for name, res in results.items() if res.get("is_live")}
 
-    # Merge timelines by date
-    timeline_dict = {}
-    
-    # helper to ingest
-    def ingest_timeline(items, key):
-        for item in items.get("timeline", []):
-            d = item["date"]
-            if d not in timeline_dict:
-                timeline_dict[d] = {"date": d, "naver": 0.0, "google": 0.0, "pinterest": 0.0, "meta": 0.0}
-            timeline_dict[d][key] = round(item["value"], 1)
+    timeline = merge_monthly_timeline(results)
 
-    ingest_timeline(naver_res, "naver")
-    ingest_timeline(google_res, "google")
-    ingest_timeline(pin_res, "pinterest")
-    ingest_timeline(meta_res, "meta")
+    dominant_key = max(live, key=lambda name: live[name]["relative_index"]) if live else None
+    peak_month = find_peak_month(timeline, live)
 
-    sorted_timeline = [TimelinePoint(**timeline_dict[k]) for k in sorted(timeline_dict.keys())]
+    changes = [res["weekly_change_pct"] for res in live.values()]
+    if not changes:
+        overall_sentiment = "판단 불가"
+    elif all(c > 0 for c in changes):
+        overall_sentiment = "상승"
+    elif all(c < 0 for c in changes):
+        overall_sentiment = "하락"
+    else:
+        overall_sentiment = "혼조"
 
-    # Calculate Dominant Platform & Summary Insight
-    scores = {
-        "naver": naver_res.get("relative_index", 50),
-        "google": google_res.get("relative_index", 50),
-        "pinterest": pin_res.get("relative_index", 50),
-        "meta": meta_res.get("relative_index", 50),
-    }
-    dominant_key = max(scores, key=scores.get)
-    platform_names = {
-        "naver": "네이버 데이터랩",
-        "google": "구글 트렌드",
-        "pinterest": "핀터레스트",
-        "meta": "인스타그램"
-    }
-
-    naver_vol = naver_res.get("estimated_monthly_volume", 50000)
-    meta_posts = int(meta_res.get("relative_index", 50) * 12000)
-    total_reach = naver_vol + meta_posts
-
-    # Construct synthesized summary insight
-    summary_insight = (
-        f"'{keyword}' 키워드는 현재 {platform_names[dominant_key]}에서 가장 높은 탐색 모멘텀({int(scores[dominant_key])}점)을 기록하고 있습니다. "
-        f"네이버 월간 쿼리수는 약 {naver_vol:,}건으로 추정되며, 인스타그램 해시태그 버즈량과 핀터레스트 라이프스타일 핀 탐색이 동반 상승세를 나타내고 있습니다."
-    )
+    if live:
+        change_text = ", ".join(
+            f"{PLATFORM_NAMES[name]} {res['weekly_change_pct']:+}%" for name, res in live.items()
+        )
+        summary_insight = (
+            f"'{keyword}' 실제 데이터 기준, 최근 관심도 지수가 가장 높은 채널은 "
+            f"{PLATFORM_NAMES[dominant_key]}({int(live[dominant_key]['relative_index'])}점)입니다. "
+            f"직전 구간 대비 변화: {change_text}."
+        )
+        if peak_month:
+            summary_insight += f" 최근 1년 중 관심도가 가장 높았던 달은 {peak_month}입니다."
+        example_names = [PLATFORM_NAMES[name] for name in results if name not in live]
+        if example_names:
+            summary_insight += f" 예시 데이터 채널({', '.join(example_names)})은 이 요약에 반영하지 않았습니다."
+    else:
+        summary_insight = (
+            "지금은 실제 데이터를 받아온 채널이 없습니다. "
+            "아래 수치는 화면 구성을 보여 주는 예시 데이터이며 실제 측정값이 아닙니다."
+        )
 
     # Cross-platform combined keywords
     cross_keywords = []
     seen = set()
-    for p_res, p_name in [(naver_res, "네이버"), (google_res, "구글"), (meta_res, "인스타"), (pin_res, "핀터")]:
-        for kw in p_res.get("top_related_keywords", []):
+    for name, res in results.items():
+        for kw in res.get("top_related_keywords", []):
             if kw not in seen:
                 seen.add(kw)
                 cross_keywords.append({
                     "keyword": kw,
-                    "platform": p_name,
-                    "relevance": round(random.uniform(85, 99), 1)
+                    "platform": PLATFORM_TAGS[name],
+                    "is_live": res.get("related_keywords_live", False),
                 })
-
-    platforms_map = {
-        "naver": PlatformMetric(
-            platform="naver",
-            display_name=naver_res["display_name"],
-            icon=naver_res["icon"],
-            relative_index=naver_res["relative_index"],
-            estimated_monthly_volume=naver_res.get("estimated_monthly_volume"),
-            weekly_change_pct=naver_res["weekly_change_pct"],
-            status=naver_res["status"],
-            primary_metric_label=naver_res["primary_metric_label"],
-            primary_metric_value=naver_res["primary_metric_value"],
-            secondary_metric_label=naver_res["secondary_metric_label"],
-            secondary_metric_value=naver_res["secondary_metric_value"],
-            is_live=naver_res.get("is_live", False),
-            top_related_keywords=naver_res["top_related_keywords"],
-            demographics=DemographicsInfo(**naver_res["demographics"]) if "demographics" in naver_res else None
-        ),
-        "google": PlatformMetric(
-            platform="google",
-            display_name=google_res["display_name"],
-            icon=google_res["icon"],
-            relative_index=google_res["relative_index"],
-            weekly_change_pct=google_res["weekly_change_pct"],
-            status=google_res["status"],
-            primary_metric_label=google_res["primary_metric_label"],
-            primary_metric_value=google_res["primary_metric_value"],
-            secondary_metric_label=google_res["secondary_metric_label"],
-            secondary_metric_value=google_res["secondary_metric_value"],
-            is_live=google_res.get("is_live", False),
-            top_related_keywords=google_res["top_related_keywords"]
-        ),
-        "pinterest": PlatformMetric(
-            platform="pinterest",
-            display_name=pin_res["display_name"],
-            icon=pin_res["icon"],
-            relative_index=pin_res["relative_index"],
-            weekly_change_pct=pin_res["weekly_change_pct"],
-            status=pin_res["status"],
-            primary_metric_label=pin_res["primary_metric_label"],
-            primary_metric_value=pin_res["primary_metric_value"],
-            secondary_metric_label=pin_res["secondary_metric_label"],
-            secondary_metric_value=pin_res["secondary_metric_value"],
-            is_live=pin_res.get("is_live", False),
-            top_related_keywords=pin_res["top_related_keywords"],
-            demographics=DemographicsInfo(**pin_res["demographics"]) if "demographics" in pin_res else None
-        ),
-        "meta": PlatformMetric(
-            platform="meta",
-            display_name=meta_res["display_name"],
-            icon=meta_res["icon"],
-            relative_index=meta_res["relative_index"],
-            weekly_change_pct=meta_res["weekly_change_pct"],
-            status=meta_res["status"],
-            primary_metric_label=meta_res["primary_metric_label"],
-            primary_metric_value=meta_res["primary_metric_value"],
-            secondary_metric_label=meta_res["secondary_metric_label"],
-            secondary_metric_value=meta_res["secondary_metric_value"],
-            is_live=meta_res.get("is_live", False),
-            top_related_keywords=meta_res["top_related_keywords"],
-            demographics=DemographicsInfo(**meta_res["demographics"]) if "demographics" in meta_res else None
-        ),
-    }
 
     response = OmniTrendResponse(
         keyword=keyword,
         updated_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        overall_sentiment="상승 추세 (Positive Momentum)",
-        dominant_platform=platform_names[dominant_key],
-        total_estimated_reach=total_reach,
+        overall_sentiment=overall_sentiment,
+        dominant_platform=PLATFORM_NAMES[dominant_key] if dominant_key else None,
+        peak_month=peak_month,
         summary_insight=summary_insight,
-        timeline=sorted_timeline,
-        platforms=platforms_map,
+        timeline=timeline,
+        platforms={
+            name: PlatformMetric(**{k: v for k, v in res.items() if k in PlatformMetric.model_fields})
+            for name, res in results.items()
+        },
         cross_platform_keywords=cross_keywords[:15]
     )
 

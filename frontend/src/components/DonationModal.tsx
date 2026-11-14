@@ -108,7 +108,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
               <span>무료 공개 프로젝트를 위한 따뜻한 응원</span>
             </div>
             <p className="text-xs text-ink-secondary leading-relaxed">
-              Omni Trend Tracker(OTT)는 마케터와 크리에이터 분들이 네이버, 구글, 핀터레스트, 인스타그램의 키워드 검색량을 별도 유료 툴 없이 한눈에 파악하실 수 있도록 <strong>100% 무료 오픈 프로젝트</strong>로 개발 및 유지되고 있습니다.
+              Omni Trend Tracker(OTT)는 마케터와 크리에이터 분들이 네이버, 구글 등 주요 채널의 키워드 트렌드를 별도 유료 툴 없이 한눈에 파악하실 수 있도록 <strong>100% 무료 오픈 프로젝트</strong>로 개발 및 유지되고 있습니다.
             </p>
             <p className="text-xs text-ink-muted leading-relaxed">
               보내주신 커피 한 잔의 따뜻한 후원은 API 유지비와 신규 트렌드 엔진 개발에 큰 힘이 됩니다.
@@ -196,7 +196,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
               <span>후원금은 어떻게 사용되나요?</span>
             </div>
             <ul className="space-y-1 text-ink-secondary pl-4 list-disc text-[11.5px] leading-relaxed">
-              <li>네이버 / 핀터레스트 / 메타 / 구글 API 트래픽 및 클라우드 인프라 유지비</li>
+              <li>네이버 / 구글 / 메타 API 트래픽 및 클라우드 인프라 유지비</li>
               <li>키워드 다중 비교, 엑셀 다운로드 등 신규 분석 기능 업데이트</li>
               <li>광고 소재 검수 도구(ACV)와의 통합 분석 기능 고도화</li>
             </ul>

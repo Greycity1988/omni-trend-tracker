@@ -1,12 +1,28 @@
 import React from 'react';
 import { OmniTrendResponse } from '../types';
-import { Flame, Target, Users, TrendingUp, Sparkles } from 'lucide-react';
+import { Flame, Target, CalendarDays, TrendingUp, Sparkles } from 'lucide-react';
 
 interface OverviewStatsProps {
   data: OmniTrendResponse;
 }
 
+const CHANNEL_SHORT_NAMES: Record<string, string> = {
+  naver: '네이버',
+  google: '구글',
+  pinterest: '핀터',
+  meta: '인스타',
+};
+
 export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
+  const channels = Object.entries(data.platforms);
+  const liveNames = channels.filter(([, p]) => p?.is_live).map(([key]) => CHANNEL_SHORT_NAMES[key] ?? key);
+  const momentumColor =
+    data.overall_sentiment === '상승'
+      ? 'text-emerald-700'
+      : data.overall_sentiment === '하락'
+        ? 'text-rose-700'
+        : 'text-ink-primary';
+
   return (
     <div className="space-y-4">
       {/* 4 KPI Metrics Grid */}
@@ -15,18 +31,17 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
         <div className="bg-surface rounded-2xl border border-line p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
-              TOTAL ESTIMATED VOLUME
+              PEAK MONTH
             </span>
-            <Users className="w-4 h-4 text-ink-muted" />
+            <CalendarDays className="w-4 h-4 text-ink-muted" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold font-mono text-ink-primary">
-              {data.total_estimated_reach.toLocaleString()}
+              {data.peak_month ?? '–'}
             </span>
-            <span className="text-xs text-ink-secondary">건+</span>
           </div>
           <div className="text-[11px] text-ink-muted mt-1">
-            네이버 검색 + 인스타 버즈 합산
+            최근 1년 중 관심도가 가장 높았던 달
           </div>
         </div>
 
@@ -40,11 +55,11 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-accent">
-              {data.dominant_platform}
+              {data.dominant_platform ?? '–'}
             </span>
           </div>
           <div className="text-[11px] text-accent-mint font-semibold mt-1">
-            현재 가장 활발한 유입 채널
+            최근 관심도 지수가 가장 높은 채널
           </div>
         </div>
 
@@ -57,12 +72,12 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
             <Flame className="w-4 h-4 text-status-naver" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-700">
-              상승 모멘텀
+            <span className={`text-xl sm:text-2xl font-bold tracking-tight ${momentumColor}`}>
+              {data.overall_sentiment}
             </span>
           </div>
           <div className="text-[11px] text-ink-muted mt-1">
-            전월 대비 다채널 동반 상승
+            실제 데이터 채널의 직전 구간 대비 변화
           </div>
         </div>
 
@@ -70,18 +85,18 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
         <div className="bg-surface rounded-2xl border border-line p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
-              CHANNELS AUDITED
+              LIVE DATA CHANNELS
             </span>
             <TrendingUp className="w-4 h-4 text-accent" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold font-mono text-ink-primary">
-              4 / 4
+              {liveNames.length} / {channels.length}
             </span>
             <span className="text-xs text-ink-secondary">채널</span>
           </div>
           <div className="text-[11px] text-ink-muted mt-1">
-            네이버 • 구글 • 핀터 • 인스타
+            {liveNames.length > 0 ? `실제 데이터: ${liveNames.join(' • ')}` : '실제 데이터 없음 (전부 예시)'}
           </div>
         </div>
       </div>

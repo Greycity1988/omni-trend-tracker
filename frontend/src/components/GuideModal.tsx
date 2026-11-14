@@ -110,7 +110,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 font-bold text-ink-primary">
                     <span className="text-base">📌</span>
-                    <span>핀터레스트 트렌드 (Pinterest)</span>
+                    <span>핀터레스트 트렌드 (Pinterest) · 준비 중</span>
                   </div>
                   <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">
                     2~3개월 선행 지표
@@ -126,7 +126,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 font-bold text-ink-primary">
                     <span className="text-base">📸</span>
-                    <span>메타 인스타그램 (Meta)</span>
+                    <span>메타 인스타그램 (Meta) · 예시 데이터</span>
                   </div>
                   <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
                     소셜 버즈 & 바이럴

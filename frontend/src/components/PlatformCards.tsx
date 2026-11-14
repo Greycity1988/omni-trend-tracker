@@ -3,11 +3,11 @@ import { PlatformMetric } from '../types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PlatformCardsProps {
-  platforms: Record<string, PlatformMetric>;
+  platforms: Partial<Record<string, PlatformMetric>>;
 }
 
 export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
-  const platformList = Object.values(platforms);
+  const platformList = Object.values(platforms).filter((p): p is PlatformMetric => Boolean(p));
 
   return (
     <div className="space-y-4">
@@ -17,7 +17,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
             플랫폼별 심층 데이터 리포트
           </h3>
           <p className="text-xs text-ink-secondary mt-0.5">
-            채널별 쿼리 볼륨, 사용자 특성 및 상위 연관 키워드 상세 분석
+            채널별 관심도 지수와 연관 키워드. ‘예시 데이터’ 카드는 실제 측정값이 아닙니다.
           </p>
         </div>
       </div>
@@ -38,7 +38,18 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                     {p.icon}
                   </span>
                   <div>
-                    <h4 className="text-sm font-bold text-ink-primary">{p.display_name}</h4>
+                    <h4 className="text-sm font-bold text-ink-primary flex items-center flex-wrap gap-x-2 gap-y-1">
+                      <span>{p.display_name}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          p.is_live
+                            ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                            : 'bg-canvas-subtle text-ink-muted border-line'
+                        }`}
+                      >
+                        {p.is_live ? '실제 데이터' : '예시 데이터'}
+                      </span>
+                    </h4>
                     <span className="text-[11px] text-ink-muted font-medium">
                       관심도 지수: <strong className="font-mono text-ink-primary">{int(p.relative_index)}/100</strong>
                     </span>
@@ -82,7 +93,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
               {/* Related Keywords List */}
               <div className="space-y-2">
                 <span className="text-[11px] font-bold text-ink-muted uppercase tracking-wider block">
-                  상위 연관 검색어 & 태그
+                  {p.related_keywords_live ? '상위 연관 검색어' : '함께 검색해 볼 조합 (예시)'}
                 </span>
                 <div className="flex items-center flex-wrap gap-1.5">
                   {p.top_related_keywords.map((kw, idx) => (

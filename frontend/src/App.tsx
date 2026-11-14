@@ -81,7 +81,7 @@ export const App: React.FC = () => {
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-accent" />
             <p className="text-xs sm:text-sm text-ink-secondary font-medium">
-              네이버, 구글, 핀터레스트, 인스타그램 4대 플랫폼 트렌드 수집 중...
+              네이버, 구글, 인스타그램 트렌드 수집 중...
             </p>
           </div>
         )}
@@ -90,7 +90,7 @@ export const App: React.FC = () => {
         {data && (
           <div className="space-y-8 animate-fadeIn">
             <OverviewStats data={data} />
-            <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} />
+            <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} />
             <PlatformCards platforms={data.platforms} />
             <DemographicsChart
               naverDemo={data.platforms.naver?.demographics}
@@ -107,7 +107,7 @@ export const App: React.FC = () => {
           Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
         </p>
         <p className="text-xs text-ink-secondary font-medium">
-          Naver DataLab • Google Trends • Pinterest Trends • Meta Instagram API
+          Naver DataLab • Google Trends • Meta Instagram
         </p>
         <p className="text-[11px] text-ink-muted">
           Created with passion in 2026 by Owen O. Magnus

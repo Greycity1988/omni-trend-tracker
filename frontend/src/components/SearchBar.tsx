@@ -44,7 +44,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
             분석할 키워드를 입력하세요
           </h2>
           <p className="text-xs sm:text-sm text-ink-secondary mt-1">
-            네이버 검색 건수, 구글 관심도, 핀터레스트 무드보드 지수, 인스타그램 버즈량을 한 번에 분석합니다.
+            네이버 검색 지수와 구글 관심도를 한 번에 비교합니다. 인스타그램은 예시 데이터이며, 핀터레스트는 준비 중입니다.
           </p>
         </div>
       </div>
@@ -71,7 +71,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin text-white" />
-              <span>4대 플랫폼 수집 중...</span>
+              <span>플랫폼 데이터 수집 중...</span>
             </>
           ) : (
             <>

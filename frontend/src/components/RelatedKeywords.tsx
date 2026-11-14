@@ -17,7 +17,7 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords, keyw
             크로스 플랫폼 연관 키워드 & 카피 추천
           </h3>
           <p className="text-xs text-ink-secondary mt-0.5">
-            4대 플랫폼에서 ‘{keyword}’와 함께 가장 많이 검색되고 태그된 연관 검색어
+            ‘{keyword}’ 연관 키워드. ‘실제’는 플랫폼이 알려 준 연관 검색어, ‘예시’는 함께 검색해 볼 조합입니다.
           </p>
         </div>
       </div>
@@ -39,8 +39,8 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords, keyw
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${platformColor}`}>
                   {item.platform}
                 </span>
-                <span className="text-[10px] font-mono text-ink-muted">
-                  {item.relevance}%
+                <span className="text-[10px] font-semibold text-ink-muted">
+                  {item.is_live ? '실제' : '예시'}
                 </span>
               </div>
               <div className="font-bold text-xs text-ink-primary group-hover:text-accent transition-colors truncate" title={item.keyword}>
