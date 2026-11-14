@@ -67,7 +67,7 @@ def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
                             "is_live": True
                         }
         except Exception as e:
-            print(f"[NAVER API HUB error, trying legacy developers API] {e}")
+            print(f"[NAVER API HUB error, trying legacy developers API] {type(e).__name__} {getattr(e, 'code', '')}")
 
         # 2. Try Legacy Developers Open API
         try:
@@ -111,7 +111,7 @@ def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
                             "is_live": True
                         }
         except Exception as e:
-            print(f"[Naver Legacy API error] {e}")
+            print(f"[Naver Legacy API error] {type(e).__name__} {getattr(e, 'code', '')}")
 
     # Fallback if both fail or credentials missing
     today = datetime.date.today()

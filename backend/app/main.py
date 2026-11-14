@@ -1,8 +1,12 @@
 import asyncio
 import datetime
 import random
-from fastapi import FastAPI, HTTPException, Query
+import time
+import unicodedata
+from collections import OrderedDict, deque
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from .config import ALLOWED_ORIGINS
 from .models import OmniTrendResponse, TimelinePoint, PlatformMetric, DemographicsInfo
 from .services.naver import fetch_naver_trend
 from .services.google import fetch_google_trend
@@ -17,21 +21,57 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+MAX_KEYWORD_LENGTH = 40
+CACHE_TTL_SECONDS = 600
+CACHE_MAX_ENTRIES = 200
+RATE_LIMIT_LOOKUPS = 10   # uncached lookups per client per window (each one calls 4 external APIs)
+RATE_LIMIT_WINDOW_SECONDS = 60
+
+_cache: "OrderedDict[str, tuple]" = OrderedDict()
+_lookups: dict = {}
+
+
+def normalize_keyword(raw: str) -> str:
+    keyword = " ".join(raw.split())
+    if not keyword:
+        raise HTTPException(status_code=400, detail="키워드를 입력해주세요.")
+    if len(keyword) > MAX_KEYWORD_LENGTH:
+        raise HTTPException(status_code=400, detail=f"키워드는 {MAX_KEYWORD_LENGTH}자 이하로 입력해주세요.")
+    if any(unicodedata.category(ch).startswith("C") for ch in keyword):
+        raise HTTPException(status_code=400, detail="키워드에 사용할 수 없는 문자가 있습니다.")
+    return keyword
+
+
+def check_rate_limit(client: str) -> None:
+    now = time.monotonic()
+    window = _lookups.setdefault(client, deque())
+    while window and now - window[0] > RATE_LIMIT_WINDOW_SECONDS:
+        window.popleft()
+    if len(window) >= RATE_LIMIT_LOOKUPS:
+        raise HTTPException(status_code=429, detail="요청이 많습니다. 잠시 후 다시 시도해주세요.")
+    window.append(now)
+    if len(_lookups) > 1000:  # keep the table from growing without bound
+        for key in [k for k, v in _lookups.items() if not v or now - v[-1] > RATE_LIMIT_WINDOW_SECONDS]:
+            _lookups.pop(key, None)
 
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "service": "omni-trend-tracker-backend", "version": "1.0.0"}
 
 @app.get("/api/trend/{keyword}", response_model=OmniTrendResponse)
-async def get_omni_trend(keyword: str):
-    keyword = keyword.strip()
-    if not keyword:
-        raise HTTPException(status_code=400, detail="키워드를 입력해주세요.")
+async def get_omni_trend(keyword: str, request: Request):
+    keyword = normalize_keyword(keyword)
+
+    cached = _cache.get(keyword)
+    if cached and cached[0] > time.monotonic():
+        return cached[1]
+    check_rate_limit(request.client.host if request.client else "unknown")
 
     # Run all 4 platform fetchers concurrently in parallel threads
     naver_res, google_res, pin_res, meta_res = await asyncio.gather(
@@ -156,7 +196,7 @@ async def get_omni_trend(keyword: str):
         ),
     }
 
-    return OmniTrendResponse(
+    response = OmniTrendResponse(
         keyword=keyword,
         updated_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         overall_sentiment="상승 추세 (Positive Momentum)",
@@ -167,3 +207,9 @@ async def get_omni_trend(keyword: str):
         platforms=platforms_map,
         cross_platform_keywords=cross_keywords[:15]
     )
+
+    _cache[keyword] = (time.monotonic() + CACHE_TTL_SECONDS, response)
+    _cache.move_to_end(keyword)
+    while len(_cache) > CACHE_MAX_ENTRIES:
+        _cache.popitem(last=False)
+    return response

@@ -50,7 +50,7 @@ def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "
                 "is_live": True
             }
     except Exception as e:
-        print(f"[Google Trends fallback] {e}")
+        print(f"[Google Trends fallback] {type(e).__name__}")
 
     # Graceful fallback baseline simulation
     today = datetime.date.today()

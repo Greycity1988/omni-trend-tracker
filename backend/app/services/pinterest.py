@@ -40,9 +40,9 @@ def fetch_pinterest_trend(keyword: str) -> Dict[str, Any]:
                     if items and "pct_growth_mom" in items[0]:
                         live_growth_mom = items[0].get("pct_growth_mom")
             else:
-                print(f"[Pinterest API v5 status {res.status_code}] {res.text[:120]}")
+                print(f"[Pinterest API v5 status {res.status_code}]")
         except Exception as e:
-            print(f"[Pinterest API fetch error] {e}")
+            print(f"[Pinterest API fetch error] {type(e).__name__}")
 
     # Build timeline (using real metrics if available or seasonal momentum model)
     today = datetime.date.today()

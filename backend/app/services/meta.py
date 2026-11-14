@@ -4,6 +4,8 @@ import datetime
 from typing import Dict, Any, List
 from ..config import META_ACCESS_TOKEN
 
+GRAPH_API = "https://graph.facebook.com/v21.0"
+
 def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
     """
     Fetches Instagram/Meta trend data via Meta Graph API v21.0.
@@ -14,24 +16,26 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
     clean_tag = keyword.replace(" ", "").replace("#", "")
     is_live = False
     ig_account_found = False
-    verified_user_name = None
+    token_verified = False
     live_post_count = None
     top_media_sample = []
 
     if META_ACCESS_TOKEN:
         try:
             import requests
-            # 1. Verify user identity
-            r_me = requests.get(
-                f"https://graph.facebook.com/v21.0/me?access_token={META_ACCESS_TOKEN}",
-                timeout=4
-            )
+            # The token travels in the Authorization header, never in the URL,
+            # so it cannot end up in logs, proxies or exception messages.
+            headers = {"Authorization": f"Bearer {META_ACCESS_TOKEN}"}
+            # 1. Verify the token works
+            r_me = requests.get(f"{GRAPH_API}/me", headers=headers, params={"fields": "id"}, timeout=4)
             if r_me.status_code == 200:
-                verified_user_name = r_me.json().get("name")
-                
+                token_verified = True
+
                 # 2. Discover linked Instagram Business Account IDs
                 r_pages = requests.get(
-                    f"https://graph.facebook.com/v21.0/me/accounts?fields=id,name,instagram_business_account&access_token={META_ACCESS_TOKEN}",
+                    f"{GRAPH_API}/me/accounts",
+                    headers=headers,
+                    params={"fields": "id,instagram_business_account"},
                     timeout=4
                 )
                 if r_pages.status_code == 200:
@@ -47,25 +51,35 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
                     # 3. If Instagram Business Account is connected, query live hashtag
                     if ig_user_id:
                         r_tag = requests.get(
-                            f"https://graph.facebook.com/v21.0/ig_hashtag_search?user_id={ig_user_id}&q={clean_tag}&access_token={META_ACCESS_TOKEN}",
+                            f"{GRAPH_API}/ig_hashtag_search",
+                            headers=headers,
+                            params={"user_id": ig_user_id, "q": clean_tag},
                             timeout=4
                         )
                         if r_tag.status_code == 200:
                             tags = r_tag.json().get("data", [])
                             if tags:
                                 is_live = True
-                                tag_id = tags[0]["id"]
-                                # Query recent media
-                                r_media = requests.get(
-                                    f"https://graph.facebook.com/v21.0/{tag_id}/recent_media?user_id={ig_user_id}&fields=id,caption,like_count,comments_count&limit=10&access_token={META_ACCESS_TOKEN}",
-                                    timeout=4
-                                )
-                                if r_media.status_code == 200:
-                                    media_list = r_media.json().get("data", [])
-                                    top_media_sample = media_list
-                                    live_post_count = len(media_list) * 1500
+                                tag_id = str(tags[0]["id"])
+                                # Query recent media (IDs returned by the API are numeric)
+                                if tag_id.isdigit():
+                                    r_media = requests.get(
+                                        f"{GRAPH_API}/{tag_id}/recent_media",
+                                        headers=headers,
+                                        params={
+                                            "user_id": ig_user_id,
+                                            "fields": "id,caption,like_count,comments_count",
+                                            "limit": 10,
+                                        },
+                                        timeout=4
+                                    )
+                                    if r_media.status_code == 200:
+                                        media_list = r_media.json().get("data", [])
+                                        top_media_sample = media_list
+                                        live_post_count = len(media_list) * 1500
         except Exception as e:
-            print(f"[Meta Graph API error] {e}")
+            # Exception text can carry request details, so only the type is logged
+            print(f"[Meta Graph API error] {type(e).__name__}")
 
     # Build timeline & metrics
     today = datetime.date.today()
@@ -87,11 +101,11 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
     if is_live:
         display_name = "메타 인스타그램 (Meta • Live API)"
         secondary_metric_label = "실시간 소셜 버즈"
-        secondary_metric_value = f"공식 해시태그 데이터 연동 ({verified_user_name})"
-    elif verified_user_name:
+        secondary_metric_value = "공식 해시태그 데이터 연동"
+    elif token_verified:
         display_name = "메타 인스타그램 (Meta API 인증 완료)"
         secondary_metric_label = "공식 Graph API 연동"
-        secondary_metric_value = f"개발자 인증 완료 ({verified_user_name})"
+        secondary_metric_value = "개발자 인증 완료"
     else:
         display_name = "메타 인스타그램 (Meta / Instagram)"
         secondary_metric_label = "소셜 버즈 강도"
@@ -121,5 +135,5 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
             "age_groups": {"20대": 44.0, "30대": 38.0, "40대": 14.0, "50대+": 4.0}
         },
         "timeline": timeline,
-        "is_live": is_live or bool(verified_user_name)
+        "is_live": is_live
     }

@@ -189,7 +189,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 소재 검수가 필요하신가요? 검수 도구로 바로 이동하실 수 있습니다.
               </span>
               <a
-                href="http://localhost:5173"
+                href="https://ad-creative-validator.vercel.app"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold text-xs shadow-2xs transition-all flex-shrink-0"
