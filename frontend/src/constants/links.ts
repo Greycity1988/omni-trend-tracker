@@ -1,5 +1,19 @@
-// Sister-service address. Local dev points at the local ACV; builds point at the deployed site.
-// Set VITE_ACV_URL to override either.
+// Sister-service address. Local dev points at local ports; builds point at deployed sites.
 export const ACV_URL: string =
   import.meta.env.VITE_ACV_URL ??
   (import.meta.env.DEV ? 'http://localhost:5173' : 'https://ad-creative-validator.vercel.app');
+
+export const CAL_URL: string =
+  import.meta.env.VITE_CAL_URL ??
+  (import.meta.env.DEV ? 'http://localhost:5175' : 'https://greycity1988.github.io/competitive-ad-lens/');
+
+export const BEP_URL: string =
+  import.meta.env.VITE_BEP_URL ??
+  (import.meta.env.DEV ? 'http://localhost:5176' : 'https://greycity1988.github.io/bep-master/');
+
+export const OTT_URL: string =
+  import.meta.env.VITE_OTT_URL ??
+  (import.meta.env.DEV ? 'http://localhost:5174' : 'https://greycity1988.github.io/omni-trend-tracker/');
+
+export const DEV_EMAIL = 'contact@example.com';
+export const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/greycity1988';

@@ -54,13 +54,15 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-canvas text-ink-primary font-sans antialiased flex flex-col selection:bg-accent/15 selection:text-accent">
+    <div className="min-h-screen text-white flex flex-col font-sans monotone-canvas">
+      {/* ── Top Navigation ── */}
       <Header
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenDonation={() => setIsDonationOpen(true)}
       />
 
+      {/* ── Main Dashboard Workspace ── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
         {/* Search Bar */}
         <SearchBar
@@ -69,23 +71,29 @@ export const App: React.FC = () => {
           currentKeyword={keyword}
         />
 
-        {/* Error Alert */}
+        {/* Error Alert Box */}
         {errorMessage && (
-          <div className="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start space-x-3 text-rose-800 shadow-soft-xs">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-status-fail" />
-            <div className="text-xs sm:text-sm">
-              <span className="font-bold">분석 처리 오류: </span>
-              <span>{errorMessage}</span>
+          <div
+            className="p-5 rounded-3xl border border-[#F34238]/50 shadow-2xl flex items-start space-x-3.5 text-white"
+            style={{ backgroundColor: '#141416' }}
+          >
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#F34238]" />
+            <div className="text-xs sm:text-sm space-y-1">
+              <span className="font-bold text-white">분석 처리 오류: </span>
+              <span className="text-[#AEAEAE]">{errorMessage}</span>
             </div>
           </div>
         )}
 
         {/* Loading Spinner State */}
         {isLoading && !data && (
-          <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-accent" />
-            <p className="text-xs sm:text-sm text-ink-secondary font-medium">
-              네이버, 구글, 인스타그램 트렌드 수집 중...
+          <div
+            className="py-20 flex flex-col items-center justify-center space-y-3 rounded-3xl border border-[#26272c] shadow-2xl"
+            style={{ backgroundColor: '#141416' }}
+          >
+            <Loader2 className="w-8 h-8 animate-spin text-[#A8FF1A]" />
+            <p className="text-xs sm:text-sm text-[#AEAEAE] font-mono font-medium">
+              네이버, 구글, 인스타그램 트렌드 수집 및 지수화 중...
             </p>
           </div>
         )}
@@ -106,23 +114,25 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="mt-auto border-t border-line bg-surface/80 backdrop-blur-sm py-10 text-center text-xs text-ink-muted space-y-2 flex flex-col items-center justify-center">
-        <p className="font-semibold text-ink-primary text-sm tracking-tight">
-          Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
+      {/* ── Global Footer ── */}
+      <footer
+        className="mt-auto border-t border-[#26272c] py-8 text-center text-xs text-[#AEAEAE] space-y-1.5"
+        style={{ backgroundColor: '#141416' }}
+      >
+        <p className="font-bold text-white text-sm tracking-tight">
+          OTT — Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
         </p>
-        <p className="text-xs text-ink-secondary font-medium">
-          Naver DataLab • Google Trends • Meta Instagram
-        </p>
-        <p className="text-[11px] text-ink-muted">
-          Created with passion in 2026 by Owen O. Magnus
+        <p className="text-xs text-[#AEAEAE] font-mono">
+          Naver DataLab • Google Trends • Meta Instagram • CAL · BEP Master 패밀리 스위트
         </p>
       </footer>
 
-      {/* Global Modals */}
+      {/* ── Global Modals ── */}
       <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <DonationModal isOpen={isDonationOpen} onClose={() => setIsDonationOpen(false)} />
     </div>
   );
 };
+
 export default App;

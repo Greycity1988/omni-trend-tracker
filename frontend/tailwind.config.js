@@ -7,58 +7,45 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: {
-          DEFAULT: '#FFFFFF',
-          subtle: '#F8FAFC',
-          muted: '#F1F5F9',
+        studio: {
+          bg: '#99A3A2',
+          bgDark: '#8A9190',
+          canvasDark: '#010101',
         },
-        surface: {
-          DEFAULT: '#FFFFFF',
-          raised: '#FFFFFF',
-          overlay: 'rgba(255, 255, 255, 0.85)',
-          glass: 'rgba(255, 255, 255, 0.82)',
-          sage: '#E8F7F0',
+        mono: {
+          black: '#000000',
+          card: '#141416',
+          cardHover: '#1c1d20',
+          cardInner: '#1e1f23',
+          cardBorder: '#26272c',
+          pill: '#202126',
+          pillHover: '#2e2f36',
+          dim: '#6E6E6E',
+          nickel: '#6B7271',
+          sub: '#AEAEAE',
+          silver: '#99A3A2',
+          white: '#FFFFFF',
         },
-        line: {
-          subtle: 'rgba(0, 0, 0, 0.04)',
-          DEFAULT: 'rgba(0, 0, 0, 0.06)',
-          strong: 'rgba(0, 0, 0, 0.12)',
+        signal: {
+          DEFAULT: '#A8FF1A',
+          dark: '#0c2205',
+          border: '#A8FF1A',
         },
-        ink: {
-          primary: '#0A0A0A',
-          secondary: '#52525B',
-          tertiary: '#71717A',
-          muted: '#A1A1AA',
-          faint: '#E4E4E7',
-        },
-        accent: {
-          DEFAULT: '#0A0A0A',     // Lifemed Jet Black
-          hover: '#262626',
-          violet: '#8B5CF6',      // Lifemed Signature Violet
-          indigo: '#6366F1',      // Lifemed Active Tab / Periwinkle
-          blue: '#2563EB',        // Lifemed Metric Subtitle Electric Blue
-          sky: '#38BDF8',         // Lifemed Sky Blue
-          sage: '#E8F7F0',        // Lifemed Soft Metric Surface
-          mint: '#10B981',        // Lifemed Clean Sage Dot
-          soft: '#F4F4F5',
-          naver: '#03C75A',
-          google: '#4285F4',
-          pinterest: '#E60023',
-          meta: '#8B5CF6',
+        warning: {
+          DEFAULT: '#F34238',
+          dark: '#2a0a08',
+          border: '#F34238',
         },
       },
-      boxShadow: {
-        'soft-xs': '0 1px 2px 0 rgba(0, 0, 0, 0.02)',
-        'soft-sm': '0 4px 14px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
-        'soft-md': '0 8px 26px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02)',
-        'soft-lg': '0 16px 36px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03)',
-        'lifemed': '0 8px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+      borderRadius: {
+        '2xl': '20px',
+        '3xl': '28px',
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        sans: ['"Pretendard"', '"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
     },
   },
   plugins: [],
-}
+};
