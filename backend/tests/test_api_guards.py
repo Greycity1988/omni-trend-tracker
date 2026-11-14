@@ -27,6 +27,7 @@ def fake_platform(name):
             "secondary_metric_value": "d",
             "top_related_keywords": [f"{keyword} 추천"],
             "timeline": [{"date": "2026-01-01", "value": 50.0}],
+            "is_live": name == "naver",
         }
     return mock.Mock(side_effect=fetch)
 
@@ -51,6 +52,11 @@ class ApiGuardTests(unittest.TestCase):
         r = self.client.get("/api/trend/%20선크림%20%20추천%20")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["keyword"], "선크림 추천")
+
+    def test_each_platform_reports_whether_its_numbers_are_live(self):
+        platforms = self.client.get("/api/trend/선크림").json()["platforms"]
+        self.assertEqual({k: v["is_live"] for k, v in platforms.items()},
+                         {"naver": True, "google": False, "pinterest": False, "meta": False})
 
     def test_too_long_keyword_is_rejected_before_any_external_call(self):
         r = self.client.get("/api/trend/" + "가" * (main.MAX_KEYWORD_LENGTH + 1))
@@ -125,6 +131,10 @@ class MetaTokenHandlingTests(unittest.TestCase):
     def test_account_owner_name_is_not_returned(self):
         result, _ = self.run_fetch("선크림")
         self.assertNotIn("Real Name", str(result))
+
+    def test_simulated_numbers_are_not_reported_as_live(self):
+        result, _ = self.run_fetch("선크림")  # hashtag lookup succeeds, numbers are still simulated
+        self.assertFalse(result["is_live"])
 
 
 if __name__ == "__main__":

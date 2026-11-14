@@ -97,5 +97,7 @@ def fetch_pinterest_trend(keyword: str) -> Dict[str, Any]:
             "age_groups": {"20대": 38.0, "30대": 36.0, "40대": 18.0, "50대+": 8.0}
         },
         "timeline": timeline,
-        "is_live": is_live
+        # The index and timeline above are always simulated; the API call only returns
+        # US top-growing keywords, which are not data for this keyword.
+        "is_live": False
     }

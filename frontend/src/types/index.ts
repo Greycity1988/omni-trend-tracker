@@ -26,6 +26,8 @@ export interface PlatformMetric {
   secondary_metric_value: string;
   top_related_keywords: string[];
   demographics?: DemographicsInfo;
+  /** true only when the trend values came from the platform for this keyword */
+  is_live: boolean;
 }
 
 export interface CrossPlatformKeyword {

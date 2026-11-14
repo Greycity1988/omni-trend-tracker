@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { OTTLogo } from './OTTLogo';
+import { ACV_URL } from '../constants/links';
 
 interface HeaderProps {
   onOpenGuide?: () => void;
@@ -89,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* ACV Inter-service Link Switcher */}
           <a
-            href="https://ad-creative-validator.vercel.app"
+            href={ACV_URL}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-accent text-white hover:bg-accent/90 border border-accent text-xs font-bold transition-all shadow-soft-xs cursor-pointer ml-1"

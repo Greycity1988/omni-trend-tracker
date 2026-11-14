@@ -135,5 +135,7 @@ def fetch_meta_trend(keyword: str) -> Dict[str, Any]:
             "age_groups": {"20대": 44.0, "30대": 38.0, "40대": 14.0, "50대+": 4.0}
         },
         "timeline": timeline,
-        "is_live": is_live
+        # The index, timeline and post count above are simulated even when the hashtag
+        # lookup succeeds, so this is never reported as live data.
+        "is_live": False
     }

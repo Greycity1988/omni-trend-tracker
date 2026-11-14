@@ -150,6 +150,7 @@ async def get_omni_trend(keyword: str, request: Request):
             primary_metric_value=naver_res["primary_metric_value"],
             secondary_metric_label=naver_res["secondary_metric_label"],
             secondary_metric_value=naver_res["secondary_metric_value"],
+            is_live=naver_res.get("is_live", False),
             top_related_keywords=naver_res["top_related_keywords"],
             demographics=DemographicsInfo(**naver_res["demographics"]) if "demographics" in naver_res else None
         ),
@@ -164,6 +165,7 @@ async def get_omni_trend(keyword: str, request: Request):
             primary_metric_value=google_res["primary_metric_value"],
             secondary_metric_label=google_res["secondary_metric_label"],
             secondary_metric_value=google_res["secondary_metric_value"],
+            is_live=google_res.get("is_live", False),
             top_related_keywords=google_res["top_related_keywords"]
         ),
         "pinterest": PlatformMetric(
@@ -177,6 +179,7 @@ async def get_omni_trend(keyword: str, request: Request):
             primary_metric_value=pin_res["primary_metric_value"],
             secondary_metric_label=pin_res["secondary_metric_label"],
             secondary_metric_value=pin_res["secondary_metric_value"],
+            is_live=pin_res.get("is_live", False),
             top_related_keywords=pin_res["top_related_keywords"],
             demographics=DemographicsInfo(**pin_res["demographics"]) if "demographics" in pin_res else None
         ),
@@ -191,6 +194,7 @@ async def get_omni_trend(keyword: str, request: Request):
             primary_metric_value=meta_res["primary_metric_value"],
             secondary_metric_label=meta_res["secondary_metric_label"],
             secondary_metric_value=meta_res["secondary_metric_value"],
+            is_live=meta_res.get("is_live", False),
             top_related_keywords=meta_res["top_related_keywords"],
             demographics=DemographicsInfo(**meta_res["demographics"]) if "demographics" in meta_res else None
         ),

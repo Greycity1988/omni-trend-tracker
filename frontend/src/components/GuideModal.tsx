@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Target,
 } from 'lucide-react';
+import { ACV_URL } from '../constants/links';
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -189,7 +190,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 소재 검수가 필요하신가요? 검수 도구로 바로 이동하실 수 있습니다.
               </span>
               <a
-                href="https://ad-creative-validator.vercel.app"
+                href={ACV_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold text-xs shadow-2xs transition-all flex-shrink-0"

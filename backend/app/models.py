@@ -33,6 +33,7 @@ class PlatformMetric(BaseModel):
     top_related_keywords: List[str]
     demographics: Optional[DemographicsInfo] = None
     sample_items: Optional[List[Dict[str, Any]]] = None
+    is_live: bool = False  # True only when the trend values came from the platform for this keyword
 
 class OmniTrendResponse(BaseModel):
     keyword: str
