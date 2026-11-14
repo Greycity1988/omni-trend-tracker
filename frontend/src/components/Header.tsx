@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenFeedback}
               className="inline-flex items-center space-x-1.5 h-9 px-4 rounded-full bg-white hover:bg-neutral-50 border border-black/[0.08] hover:border-black/20 text-xs font-semibold text-neutral-700 hover:text-black shadow-soft-xs transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
-              title="새로운 광고 매체/지면 추가 요청이나 의견을 남겨주세요."
+              title="기능 제안이나 데이터 오류 제보를 남겨주세요."
             >
               <MessageSquare className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
               <span className="whitespace-nowrap">💡 건의 / 규격 제보</span>
