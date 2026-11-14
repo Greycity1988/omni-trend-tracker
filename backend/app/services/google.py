@@ -1,6 +1,6 @@
 import math
 import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "KR") -> Dict[str, Any]:

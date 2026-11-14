@@ -1,10 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
-
-class KeywordTrendRequest(BaseModel):
-    keyword: str
-    timeframe: str = "today 12-m"
-    geo: str = "KR"
+from pydantic import BaseModel
 
 class TimelinePoint(BaseModel):
     date: str  # YYYY-MM
@@ -13,11 +8,6 @@ class TimelinePoint(BaseModel):
     google: Optional[float] = None
     pinterest: Optional[float] = None
     meta: Optional[float] = None
-
-class DemographicsInfo(BaseModel):
-    male_ratio: float
-    female_ratio: float
-    age_groups: Dict[str, float]
 
 class PlatformMetric(BaseModel):
     platform: str
@@ -31,7 +21,6 @@ class PlatformMetric(BaseModel):
     secondary_metric_label: str
     secondary_metric_value: str
     top_related_keywords: List[str]
-    demographics: Optional[DemographicsInfo] = None
     is_live: bool = False  # True only when the trend values came from the platform for this keyword
     related_keywords_live: bool = False  # True only when top_related_keywords came from the platform
 

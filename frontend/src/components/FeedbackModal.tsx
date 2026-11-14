@@ -5,9 +5,6 @@ import {
   CheckCircle2,
   Sparkles,
   ExternalLink,
-  Mail,
-  Copy,
-  Check,
   Send,
   Clock,
 } from 'lucide-react';
@@ -23,17 +20,14 @@ interface LocalFeedback {
   title: string;
   content: string;
   author: string;
-  email: string;
   createdAt: string;
 }
 
-const DEV_EMAIL = 'laplui2@me.com';
 const GITHUB_ISSUES_URL = 'https://github.com/Greycity1988/omni-trend-tracker/issues/new';
 const STORAGE_KEY = 'ott_user_feedbacks';
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'write' | 'list'>('write');
-  const [emailCopied, setEmailCopied] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form states
@@ -41,7 +35,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
-  const [email, setEmail] = useState('');
   const [feedbacks, setFeedbacks] = useState<LocalFeedback[]>([]);
 
   useEffect(() => {
@@ -55,18 +48,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     }
   }, [isOpen]);
 
-  const handleCopyEmail = async () => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(DEV_EMAIL);
-      }
-      setEmailCopied(true);
-      setTimeout(() => setEmailCopied(false), 2500);
-    } catch {
-      // fallback
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
@@ -77,7 +58,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       title: title.trim(),
       content: content.trim(),
       author: author.trim() || '익명 마케터',
-      email: email.trim(),
       createdAt: new Date().toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: 'long',
@@ -93,10 +73,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       // ignore
     }
 
+    // Reports are received on GitHub Issues; this page only prepares the issue and keeps a local copy
+    const issueTitle = encodeURIComponent(`[${category}] ${newFeedback.title}`);
+    const issueBody = encodeURIComponent(
+      `• 분류: ${category}\n• 작성자: ${newFeedback.author}\n\n${newFeedback.content}\n\n— OTT 건의 창에서 작성`
+    );
+    window.open(`${GITHUB_ISSUES_URL}?title=${issueTitle}&body=${issueBody}`, '_blank', 'noopener,noreferrer');
+
     // Reset form
     setTitle('');
     setContent('');
-    setSuccessMessage('소중한 건의사항이 정상 접수되었습니다! 검토 후 서비스에 적극 반영하겠습니다.');
+    setSuccessMessage('GitHub 이슈 작성 화면을 새 탭으로 열었습니다. GitHub에서 등록을 눌러야 접수됩니다.');
     setTimeout(() => setSuccessMessage(null), 4000);
     setActiveTab('list');
   };
@@ -136,30 +123,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Quick Contact Bar */}
-        <div className="px-6 py-3 bg-canvas-subtle border-b border-line flex flex-wrap items-center justify-between gap-3 text-xs flex-shrink-0">
-          <div className="flex items-center space-x-2 text-ink-secondary">
-            <Mail className="w-3.5 h-3.5 text-accent" />
-            <span>개발자 직접 문의:</span>
-            <span className="font-mono font-semibold text-ink-primary">{DEV_EMAIL}</span>
-            <button
-              type="button"
-              onClick={handleCopyEmail}
-              className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-surface hover:bg-canvas border border-line text-[11px] font-medium text-ink-secondary hover:text-ink-primary transition-colors cursor-pointer"
-            >
-              {emailCopied ? (
-                <>
-                  <Check className="w-3 h-3 text-accent-mint" />
-                  <span>복사됨</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3 text-ink-muted" />
-                  <span>이메일 복사</span>
-                </>
-              )}
-            </button>
-          </div>
-
+        <div className="px-6 py-3 bg-canvas-subtle border-b border-line flex flex-wrap items-center justify-end gap-3 text-xs flex-shrink-0">
           <a
             href={GITHUB_ISSUES_URL}
             target="_blank"
@@ -272,20 +236,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 />
               </div>
 
-              {/* Email (Optional) */}
-              <div>
-                <label className="block text-xs font-semibold text-ink-primary mb-1.5">
-                  회신받을 이메일 (답변 필요 시 입력)
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  className="w-full px-3 py-2 rounded-xl border border-line bg-surface text-ink-primary text-xs focus:outline-none focus:border-accent"
-                />
-              </div>
-
               {/* Submit Button */}
               <div className="pt-2 flex justify-end">
                 <button
@@ -293,7 +243,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   className="inline-flex items-center space-x-1.5 px-5 py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold text-xs shadow-soft-xs transition-all cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>건의사항 제출하기</span>
+                  <span>GitHub 이슈로 등록하기</span>
                 </button>
               </div>
             </form>
@@ -330,7 +280,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     </p>
                     <div className="text-[11px] text-ink-muted pt-1 border-t border-line/60 flex items-center justify-between">
                       <span>작성자: {item.author}</span>
-                      <span className="text-accent-mint font-semibold">✓ 접수 완료</span>
+                      <span className="text-ink-muted font-semibold">이 브라우저에 저장된 기록</span>
                     </div>
                   </div>
                 ))
@@ -343,7 +293,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
         <div className="p-4 border-t border-line bg-canvas-subtle flex items-center justify-between text-xs text-ink-muted flex-shrink-0">
           <div className="flex items-center space-x-1.5">
             <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span>접수된 건의는 48시간 이내 검토됩니다</span>
+            <span>건의는 GitHub 이슈로 접수됩니다</span>
           </div>
           <button
             type="button"
