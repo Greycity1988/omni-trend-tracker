@@ -30,6 +30,10 @@ export const App: React.FC = () => {
       setKeyword(query);
 
       const res = await fetch(`/api/trend/${encodeURIComponent(query)}`);
+      // The public page has no data server yet: /api answers with the host's HTML 404.
+      if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
+        throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 공개 페이지의 조회 기능은 준비 중입니다.');
+      }
       if (!res.ok) {
         throw new Error(`데이터 조회 실패 (HTTP ${res.status})`);
       }
