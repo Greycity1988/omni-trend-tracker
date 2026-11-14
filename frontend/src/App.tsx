@@ -6,6 +6,9 @@ import { UnifiedTrendChart } from './components/UnifiedTrendChart';
 import { PlatformCards } from './components/PlatformCards';
 import { DemographicsChart } from './components/DemographicsChart';
 import { RelatedKeywords } from './components/RelatedKeywords';
+import { GuideModal } from './components/GuideModal';
+import { FeedbackModal } from './components/FeedbackModal';
+import { DonationModal } from './components/DonationModal';
 import { OmniTrendResponse } from './types';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
@@ -14,6 +17,11 @@ export const App: React.FC = () => {
   const [data, setData] = useState<OmniTrendResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Modals state
+  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+  const [isDonationOpen, setIsDonationOpen] = useState<boolean>(false);
 
   const fetchTrend = async (query: string) => {
     try {
@@ -43,7 +51,11 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-canvas text-ink-primary font-sans antialiased flex flex-col selection:bg-accent/15 selection:text-accent">
-      <Header />
+      <Header
+        onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+        onOpenDonation={() => setIsDonationOpen(true)}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
         {/* Search Bar */}
@@ -101,6 +113,11 @@ export const App: React.FC = () => {
           Created with passion in 2026 by Owen O. Magnus
         </p>
       </footer>
+
+      {/* Global Modals */}
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+      <DonationModal isOpen={isDonationOpen} onClose={() => setIsDonationOpen(false)} />
     </div>
   );
 };
