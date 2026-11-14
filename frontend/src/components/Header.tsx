@@ -1,5 +1,6 @@
 import React from 'react';
-import { Activity, Github, ExternalLink } from 'lucide-react';
+import { Github, ExternalLink } from 'lucide-react';
+import { OTTLogo } from './OTTLogo';
 
 export const Header: React.FC = () => {
   return (
@@ -7,11 +8,14 @@ export const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         {/* Brand Logo & Name */}
         <div className="flex items-center space-x-3 sm:space-x-4">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-accent text-white flex items-center justify-center font-bold shadow-soft-sm tracking-tighter">
-            <Activity className="w-5 h-5 text-accent-mint" />
+          <div className="p-0.5 rounded-2xl bg-canvas hover:bg-canvas-subtle border border-line transition-all flex-shrink-0">
+            <OTTLogo size={42} showText={false} />
           </div>
           <div>
             <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono font-bold tracking-wider text-accent bg-accent-light px-2 py-0.5 rounded-md border border-accent/15">
+                OTT
+              </span>
               <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-ink-primary">
                 Omni Trend Tracker
               </h1>
