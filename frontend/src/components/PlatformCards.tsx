@@ -43,7 +43,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                           p.is_live
-                            ? 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20'
+                            ? 'bg-[#E8F7F0] text-[#065F46] border-[#A7F3D0]'
                             : 'bg-black/[0.04] text-neutral-600 border-black/[0.08]'
                         }`}
                       >

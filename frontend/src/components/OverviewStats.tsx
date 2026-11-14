@@ -18,16 +18,16 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
   const liveNames = channels.filter(([, p]) => p?.is_live).map(([key]) => CHANNEL_SHORT_NAMES[key] ?? key);
   const momentumColor =
     data.overall_sentiment === '상승'
-      ? 'text-emerald-600'
+      ? 'text-violet-600'
       : data.overall_sentiment === '하락'
         ? 'text-rose-600'
         : 'text-ink-primary';
 
   return (
     <div className="space-y-4">
-      {/* 4 KPI Metrics Grid */}
+      {/* 4 KPI Metrics Grid - Lifemed Style (Image 0 & 1) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1 */}
+        {/* Metric 1: Peak Month */}
         <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
@@ -40,36 +40,36 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
               {data.peak_month ?? '–'}
             </span>
           </div>
-          <div className="text-[11px] text-ink-muted mt-1">
+          <div className="text-[11px] text-blue-600 font-medium mt-1">
             최근 1년 중 관심도가 가장 높았던 달
           </div>
         </div>
 
-        {/* Metric 2 */}
+        {/* Metric 2: Dominant Channel */}
         <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
               DOMINANT CHANNEL
             </span>
-            <Target className="w-4 h-4 text-emerald-500" />
+            <Target className="w-4 h-4 text-violet-500" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink-primary">
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-violet-700">
               {data.dominant_platform ?? '–'}
             </span>
           </div>
-          <div className="text-[11px] text-emerald-600 font-semibold mt-1">
+          <div className="text-[11px] text-violet-600 font-medium mt-1">
             최근 관심도 지수가 가장 높은 채널
           </div>
         </div>
 
-        {/* Metric 3 */}
+        {/* Metric 3: Momentum Status */}
         <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
               MOMENTUM STATUS
             </span>
-            <Flame className="w-4 h-4 text-emerald-500" />
+            <Flame className="w-4 h-4 text-violet-500" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
             <span className={`text-xl sm:text-2xl font-bold tracking-tight ${momentumColor}`}>
@@ -81,21 +81,21 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
           </div>
         </div>
 
-        {/* Metric 4 */}
-        <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
+        {/* Metric 4: Live Data Channels - Lifemed Signature Soft Sage Card (Image 1 style) */}
+        <div className="bg-[#E8F7F0] rounded-2xl border border-[#A7F3D0] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
           <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
+            <span className="tracking-wider text-[11px] font-bold text-[#065F46]/80 uppercase">
               LIVE DATA CHANNELS
             </span>
-            <TrendingUp className="w-4 h-4 text-ink-primary" />
+            <TrendingUp className="w-4 h-4 text-[#10B981]" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-ink-primary">
+            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-[#065F46]">
               {liveNames.length} / {channels.length}
             </span>
-            <span className="text-xs text-ink-secondary">채널</span>
+            <span className="text-xs text-[#065F46]/80 font-medium">채널</span>
           </div>
-          <div className="text-[11px] text-ink-muted mt-1">
+          <div className="text-[11px] text-[#065F46] font-bold mt-1">
             {liveNames.length > 0 ? `실제 데이터: ${liveNames.join(' • ')}` : '실제 데이터 없음 (전부 예시)'}
           </div>
         </div>
@@ -103,8 +103,8 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
 
       {/* Synthesis Insight Banner */}
       <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs flex items-start space-x-3.5">
-        <div className="w-9 h-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-ink-primary flex-shrink-0 mt-0.5">
-          <Sparkles className="w-4 h-4 text-emerald-500" />
+        <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-200/80 flex items-center justify-center text-violet-600 flex-shrink-0 mt-0.5">
+          <Sparkles className="w-4 h-4" />
         </div>
         <div>
           <h4 className="text-xs font-bold uppercase tracking-wider text-ink-primary">

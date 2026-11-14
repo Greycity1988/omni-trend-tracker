@@ -17,6 +17,7 @@ export default {
           raised: '#FFFFFF',
           overlay: 'rgba(255, 255, 255, 0.85)',
           glass: 'rgba(255, 255, 255, 0.82)',
+          sage: '#E8F7F0',
         },
         line: {
           subtle: 'rgba(0, 0, 0, 0.04)',
@@ -33,12 +34,17 @@ export default {
         accent: {
           DEFAULT: '#0A0A0A',     // Lifemed Jet Black
           hover: '#262626',
+          violet: '#8B5CF6',      // Lifemed Signature Violet
+          indigo: '#6366F1',      // Lifemed Active Tab / Periwinkle
+          blue: '#2563EB',        // Lifemed Metric Subtitle Electric Blue
+          sky: '#38BDF8',         // Lifemed Sky Blue
+          sage: '#E8F7F0',        // Lifemed Soft Metric Surface
+          mint: '#10B981',        // Lifemed Clean Sage Dot
           soft: '#F4F4F5',
-          mint: '#10B981',        // High-visibility mint status
           naver: '#03C75A',
           google: '#4285F4',
           pinterest: '#E60023',
-          meta: '#E1306C',
+          meta: '#8B5CF6',
         },
       },
       boxShadow: {

@@ -115,11 +115,11 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               onClick={() => toggleChannel('meta')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.meta
-                  ? 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 font-bold'
+                  ? 'bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/30 font-bold'
                   : 'bg-white text-ink-muted border-black/[0.06] opacity-60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-[#E1306C]" />
+              <span className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
               <span>인스타그램{exampleTag('meta')}</span>
             </button>
           )}
@@ -144,8 +144,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 <stop offset="95%" stopColor="#E60023" stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id="colorMeta" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#E1306C" stopOpacity={0.22} />
-                <stop offset="95%" stopColor="#E1306C" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.22} />
+                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.0} />
               </linearGradient>
             </defs>
 
@@ -223,7 +223,7 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               <Area
                 type="monotone"
                 dataKey="meta"
-                stroke="#E1306C"
+                stroke="#8B5CF6"
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorMeta)"
