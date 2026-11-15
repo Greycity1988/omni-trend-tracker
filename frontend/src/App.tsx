@@ -9,6 +9,7 @@ import { RelatedKeywords } from './components/RelatedKeywords';
 import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { DonationModal } from './components/DonationModal';
+import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
 import { OmniTrendResponse } from './types';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [isDonationOpen, setIsDonationOpen] = useState<boolean>(false);
+  const [isSuiteDrawerOpen, setIsSuiteDrawerOpen] = useState<boolean>(false);
 
   const fetchTrend = async (query: string) => {
     try {
@@ -60,6 +62,7 @@ export const App: React.FC = () => {
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenDonation={() => setIsDonationOpen(true)}
+        onOpenSuiteDrawer={() => setIsSuiteDrawerOpen(true)}
       />
 
       {/* ── Main Dashboard Workspace ── */}
@@ -131,6 +134,11 @@ export const App: React.FC = () => {
       <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       <DonationModal isOpen={isDonationOpen} onClose={() => setIsDonationOpen(false)} />
+      <SuiteNavigationDrawer
+        isOpen={isSuiteDrawerOpen}
+        onClose={() => setIsSuiteDrawerOpen(false)}
+        currentApp="ott"
+      />
     </div>
   );
 };

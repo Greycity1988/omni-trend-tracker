@@ -4,19 +4,21 @@ import {
   Coffee,
   HelpCircle,
   TrendingUp,
+  Menu,
 } from 'lucide-react';
-import { ACV_URL, CAL_URL, BEP_URL } from '../constants/links';
 
 interface HeaderProps {
   onOpenGuide?: () => void;
   onOpenFeedback?: () => void;
   onOpenDonation?: () => void;
+  onOpenSuiteDrawer?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenGuide,
   onOpenFeedback,
   onOpenDonation,
+  onOpenSuiteDrawer,
 }) => {
   return (
     <header
@@ -83,33 +85,18 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Suite Cross-Links */}
-          <div className="hidden lg:flex items-center space-x-1 pl-1 border-l border-[#2e2f36]">
-            <a
-              href={BEP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1.5 rounded-full text-[11px] font-mono text-[#AEAEAE] hover:text-[#A8FF1A] hover:bg-[#202126] transition"
+          {/* Suite Drawer Trigger Button */}
+          {onOpenSuiteDrawer && (
+            <button
+              type="button"
+              onClick={onOpenSuiteDrawer}
+              className="inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-full text-white bg-[#202126] hover:bg-[#2c2d33] border border-[#2e2f36] transition shadow-sm ml-1 cursor-pointer"
+              title="마케팅 스위트 전체 서비스 이동"
             >
-              BEP Master ↗
-            </a>
-            <a
-              href={CAL_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1.5 rounded-full text-[11px] font-mono text-[#AEAEAE] hover:text-white hover:bg-[#202126] transition"
-            >
-              CAL Lens ↗
-            </a>
-            <a
-              href={ACV_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1.5 rounded-full text-[11px] font-mono text-[#AEAEAE] hover:text-white hover:bg-[#202126] transition"
-            >
-              ACV Studio ↗
-            </a>
-          </div>
+              <Menu className="w-4 h-4 mr-1.5 text-[#A8FF1A]" />
+              <span>Suite</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
