@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Coffee, Heart, ExternalLink, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { BUY_ME_A_COFFEE_URL } from '../constants/links';
+import { KO_FI_URL } from '../constants/links';
 
 interface DonationModalProps {
   isOpen: boolean;
@@ -52,7 +52,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
           <div className="p-4 bg-[#1a1b1f] rounded-2xl border border-[#26272c] inline-block mx-auto shadow-xl">
             <div className="p-2.5 bg-white rounded-xl">
               <QRCodeSVG
-                value={BUY_ME_A_COFFEE_URL}
+                value={KO_FI_URL}
                 size={140}
                 level="M"
                 includeMargin={false}
@@ -65,19 +65,19 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
 
           <div className="space-y-2.5">
             <a
-              href={BUY_ME_A_COFFEE_URL}
+              href={KO_FI_URL}
               target="_blank"
               rel="noreferrer"
               className="w-full h-11 rounded-full bg-[#A8FF1A] hover:bg-[#b8ff33] text-black font-extrabold text-xs transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
             >
               <Heart className="w-4 h-4 fill-current text-black" />
-              <span>Buy Me a Coffee 바로가기</span>
+              <span>Ko-fi로 커피 후원하기</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
             <div className="flex items-center justify-center space-x-1.5 text-[11px] text-[#6E6E6E] pt-1 font-mono">
               <ShieldCheck className="w-3.5 h-3.5 text-[#A8FF1A]" />
-              <span>Stripe 기반 안전 결제 보호 · 해외/국내 카드 지원</span>
+              <span>PayPal 및 해외/국내 카드 지원 · 수수료 없는 안전 결제</span>
             </div>
           </div>
         </div>

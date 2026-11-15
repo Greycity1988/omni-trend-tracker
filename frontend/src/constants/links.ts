@@ -16,4 +16,5 @@ export const OTT_URL: string =
   (import.meta.env.DEV ? 'http://localhost:5174' : 'https://greycity1988.github.io/omni-trend-tracker/');
 
 export const DEV_EMAIL = 'contact@example.com';
-export const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/greycity1988';
+export const KO_FI_URL = 'https://ko-fi.com/greycity1988';
+export const BUY_ME_A_COFFEE_URL = KO_FI_URL;
