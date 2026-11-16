@@ -12,8 +12,10 @@ import { DonationModal } from './components/DonationModal';
 import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
 import { OmniTrendResponse } from './types';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useTheme } from './utils/useTheme';
 
 export const App: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const [keyword, setKeyword] = useState<string>('선크림');
   const [data, setData] = useState<OmniTrendResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,7 +36,7 @@ export const App: React.FC = () => {
       const res = await fetch(`/api/trend/${encodeURIComponent(query)}`);
       // The public page has no data server yet: /api answers with the host's HTML 404.
       if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
-        throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 공개 페이지의 조회 기능은 준비 중입니다.');
+        throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 로컬 백엔드 서버(포트 8000)를 가동해 주세요.');
       }
       if (!res.ok) {
         throw new Error(`데이터 조회 실패 (HTTP ${res.status})`);
@@ -56,13 +58,15 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen text-white flex flex-col font-sans monotone-canvas">
+    <div className="min-h-screen text-slate-900 dark:text-white flex flex-col font-sans monotone-canvas transition-colors">
       {/* ── Top Navigation ── */}
       <Header
         onOpenGuide={() => setIsGuideOpen(true)}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenDonation={() => setIsDonationOpen(true)}
         onOpenSuiteDrawer={() => setIsSuiteDrawerOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* ── Main Dashboard Workspace ── */}
@@ -76,26 +80,20 @@ export const App: React.FC = () => {
 
         {/* Error Alert Box */}
         {errorMessage && (
-          <div
-            className="p-5 rounded-3xl border border-[#F34238]/50 shadow-2xl flex items-start space-x-3.5 text-white"
-            style={{ backgroundColor: '#141416' }}
-          >
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#F34238]" />
+          <div className="p-5 rounded-3xl border border-red-300 dark:border-[#F34238]/50 shadow-sm flex items-start space-x-3.5 bg-red-50 text-red-900 dark:bg-[#141416] dark:text-white transition-colors">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-[#F34238]" />
             <div className="text-xs sm:text-sm space-y-1">
-              <span className="font-bold text-white">분석 처리 오류: </span>
-              <span className="text-[#AEAEAE]">{errorMessage}</span>
+              <span className="font-bold">분석 처리 알림: </span>
+              <span className="text-red-700 dark:text-[#AEAEAE]">{errorMessage}</span>
             </div>
           </div>
         )}
 
         {/* Loading Spinner State */}
         {isLoading && !data && (
-          <div
-            className="py-20 flex flex-col items-center justify-center space-y-3 rounded-3xl border border-[#26272c] shadow-2xl"
-            style={{ backgroundColor: '#141416' }}
-          >
-            <Loader2 className="w-8 h-8 animate-spin text-[#A8FF1A]" />
-            <p className="text-xs sm:text-sm text-[#AEAEAE] font-mono font-medium">
+          <div className="py-20 flex flex-col items-center justify-center space-y-3 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-[#26272c] dark:bg-[#141416] transition-colors">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-[#A8FF1A]" />
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-[#AEAEAE] font-mono font-medium">
               네이버, 구글, 인스타그램 트렌드 수집 및 지수화 중...
             </p>
           </div>
@@ -118,15 +116,12 @@ export const App: React.FC = () => {
       </main>
 
       {/* ── Global Footer ── */}
-      <footer
-        className="mt-auto border-t border-[#26272c] py-8 text-center text-xs text-[#AEAEAE] space-y-1.5"
-        style={{ backgroundColor: '#141416' }}
-      >
-        <p className="font-bold text-white text-sm tracking-tight">
+      <footer className="mt-auto border-t border-slate-200 py-8 text-center text-xs text-slate-500 space-y-1.5 transition-colors bg-white dark:border-[#26272c] dark:bg-[#141416] dark:text-[#AEAEAE]">
+        <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">
           OTT — Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
         </p>
-        <p className="text-xs text-[#AEAEAE] font-mono">
-          Naver DataLab • Google Trends • Meta Instagram • CAL · BEP Master 패밀리 스위트
+        <p className="text-xs text-slate-500 dark:text-[#AEAEAE] font-mono">
+          Naver DataLab • Google Trends • Meta Instagram • ACV · CAL · BEP Master 패밀리 스위트
         </p>
       </footer>
 

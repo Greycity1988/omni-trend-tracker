@@ -45,20 +45,17 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
   }));
 
   return (
-    <div
-      className="rounded-3xl border border-[#26272c] shadow-2xl p-6 sm:p-8 space-y-6"
-      style={{ backgroundColor: '#141416' }}
-    >
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-6 sm:p-8 space-y-6 dark:border-[#26272c] dark:bg-[#141416] transition-colors">
       {/* Chart Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202126]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-[#202126]">
         <div>
           <div className="flex items-center space-x-2">
-            <Layers className="w-5 h-5 text-white" />
-            <h3 className="text-lg font-bold tracking-tight text-white">
+            <Layers className="w-5 h-5 text-slate-800 dark:text-white" />
+            <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
               플랫폼 통합 검색 관심도 추이
             </h3>
           </div>
-          <p className="text-xs text-[#AEAEAE] mt-1">
+          <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">
             ‘{keyword}’ 키워드의 지난 12개월간 월별 관심도 (채널마다 자체 최고점을 100으로 환산)
             {hasExample && ' · 점선은 예시 데이터'}
           </p>
