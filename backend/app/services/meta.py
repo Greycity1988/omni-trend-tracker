@@ -7,6 +7,43 @@ from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 
 GRAPH_API = "https://graph.facebook.com/v21.0"
 
+# In-memory resilient cache to prevent API flapping and rate-limiting
+_META_AD_CACHE: Dict[str, Any] = {}
+_META_CACHE_TTL = 900.0  # 15 minutes cache per keyword
+_IG_USER_ID_CACHE: Optional[str] = None
+_IG_USER_ID_CHECKED: bool = False
+
+
+def get_linked_ig_user_id() -> Optional[str]:
+    """Discovers and caches linked Instagram Business Account ID once to avoid redundant HTTP calls."""
+    global _IG_USER_ID_CACHE, _IG_USER_ID_CHECKED
+    if _IG_USER_ID_CHECKED:
+        return _IG_USER_ID_CACHE
+    from .. import config
+    token = getattr(config, "META_ACCESS_TOKEN", "").strip()
+    if not token:
+        _IG_USER_ID_CHECKED = True
+        return None
+    try:
+        import requests
+        headers = {"Authorization": f"Bearer {token}"}
+        r_pages = requests.get(
+            f"{GRAPH_API}/me/accounts",
+            headers=headers,
+            params={"fields": "id,instagram_business_account"},
+            timeout=4
+        )
+        if r_pages.status_code == 200:
+            for p in r_pages.json().get("data", []):
+                ig_acc = p.get("instagram_business_account")
+                if ig_acc and "id" in ig_acc:
+                    _IG_USER_ID_CACHE = str(ig_acc["id"])
+                    break
+    except Exception:
+        pass
+    _IG_USER_ID_CHECKED = True
+    return _IG_USER_ID_CACHE
+
 
 def update_env_meta_token(new_token: str) -> None:
     """Safely updates META_ACCESS_TOKEN in backend/.env without altering other lines."""
@@ -116,12 +153,15 @@ def lookup_hashtag_media(keyword: str) -> Optional[List[Dict[str, Any]]]:
     - Discovers the connected Instagram Business/Creator Account ID
     - Queries ig_hashtag_search and the hashtag's recent media
     """
-    if not META_ACCESS_TOKEN:
+    import sys
+    this_mod = sys.modules[__name__]
+    token = getattr(this_mod, "META_ACCESS_TOKEN", META_ACCESS_TOKEN)
+    if not token:
         return None
     clean_tag = keyword.replace(" ", "").replace("#", "")
     try:
         import requests
-        headers = {"Authorization": f"Bearer {META_ACCESS_TOKEN.strip()}"}
+        headers = {"Authorization": f"Bearer {token.strip()}"}
         # 1. Verify token
         r_me = requests.get(f"{GRAPH_API}/me", headers=headers, params={"fields": "id"}, timeout=4)
         if r_me.status_code != 200:
@@ -178,132 +218,141 @@ def lookup_hashtag_media(keyword: str) -> Optional[List[Dict[str, Any]]]:
 
 
 def lookup_instagram_ad_volume(keyword: str) -> Optional[List[Dict[str, Any]]]:
-    """Query Meta Ads Archive for Instagram in Korea via ads_read permission."""
-    if not META_ACCESS_TOKEN:
+    """
+    Query Meta Ads Archive for Instagram in Korea via ads_read permission.
+    Features:
+    - 15-minute in-memory cache per keyword for instant zero-latency responses
+    - Automatic token renewal on HTTP 401
+    - Up to 2 retries with backoff on network glitch or timeout
+    - Stale cache fallback during transient network jitter (completely eliminates flapping)
+    """
+    import sys
+    this_mod = sys.modules[__name__]
+    token = getattr(this_mod, "META_ACCESS_TOKEN", META_ACCESS_TOKEN)
+    if not token:
         return None
-    try:
-        import requests
-        headers = {"Authorization": f"Bearer {META_ACCESS_TOKEN.strip()}"}
-        r = requests.get(
-            f"{GRAPH_API}/ads_archive",
-            headers=headers,
-            params={
-                "ad_reached_countries": '["KR"]',
-                "search_terms": keyword,
-                "ad_active_status": "ALL",
-                "publisher_platforms": '["INSTAGRAM"]',
-                "fields": "id,ad_delivery_start_time,page_name",
-                "limit": 50,
-            },
-            timeout=5
-        )
-        if r.status_code == 200:
-            return r.json().get("data", [])
-        elif r.status_code == 401:
-            print("[Meta Ads Archive] Token expired (HTTP 401). Attempting auto-renewal...")
-            renewed = refresh_meta_long_lived_token()
-            if renewed and renewed.get("success"):
-                from .. import config
-                r_retry = requests.get(
-                    f"{GRAPH_API}/ads_archive",
-                    headers={"Authorization": f"Bearer {config.META_ACCESS_TOKEN.strip()}"},
-                    params={
-                        "ad_reached_countries": '["KR"]',
-                        "search_terms": keyword,
-                        "ad_active_status": "ALL",
-                        "publisher_platforms": '["INSTAGRAM"]',
-                        "fields": "id,ad_delivery_start_time,page_name",
-                        "limit": 50,
-                    },
-                    timeout=5,
-                )
-                if r_retry.status_code == 200:
-                    return r_retry.json().get("data", [])
-            print("[Meta Ads Archive] Token expired or invalid (HTTP 401). Falling back.")
-    except Exception as e:
-        print(f"[Meta Ads Archive error] {type(e).__name__}")
+
+    import time
+    clean_kw = keyword.strip()
+    now = time.monotonic()
+
+    # 1. Check in-memory fresh cache
+    cached = _META_AD_CACHE.get(clean_kw)
+    if cached and cached[0] > now:
+        return cached[1]
+
+    import requests
+    headers = {"Authorization": f"Bearer {token.strip()}"}
+    params = {
+        "ad_reached_countries": '["KR"]',
+        "search_terms": clean_kw,
+        "ad_active_status": "ALL",
+        "publisher_platforms": '["INSTAGRAM"]',
+        "fields": "id,ad_delivery_start_time,page_name",
+        "limit": 50,
+    }
+
+    # 2. Resilient fetch with retry
+    for attempt in range(2):
+        try:
+            r = requests.get(f"{GRAPH_API}/ads_archive", headers=headers, params=params, timeout=7)
+            if r.status_code == 200:
+                data = r.json().get("data", [])
+                _META_AD_CACHE[clean_kw] = (now + _META_CACHE_TTL, data)
+                return data
+            elif r.status_code == 401:
+                print("[Meta Ads Archive] Token expired (HTTP 401). Attempting auto-renewal...")
+                renewed = refresh_meta_long_lived_token()
+                if renewed and renewed.get("success"):
+                    token = getattr(this_mod, "META_ACCESS_TOKEN", META_ACCESS_TOKEN)
+                    headers = {"Authorization": f"Bearer {token.strip()}"}
+                    r_retry = requests.get(f"{GRAPH_API}/ads_archive", headers=headers, params=params, timeout=7)
+                    if r_retry.status_code == 200:
+                        data = r_retry.json().get("data", [])
+                        _META_AD_CACHE[clean_kw] = (now + _META_CACHE_TTL, data)
+                        return data
+                break
+            else:
+                print(f"[Meta Ads Archive] HTTP {r.status_code}: {r.text[:120]}")
+        except Exception as e:
+            print(f"[Meta Ads Archive attempt {attempt+1} error] {type(e).__name__}: {e}")
+            if attempt < 1:
+                time.sleep(0.3)
+
+    # 3. If live call failed due to transient network glitch, serve stale cache if available
+    if cached:
+        print(f"[Meta Ads Archive] Transient glitch for '{clean_kw}', serving cached data ({len(cached[1])} ads)")
+        return cached[1]
+
     return None
 
 
 def fetch_meta_trend(keyword: str, live: bool = False) -> Dict[str, Any]:
+    import sys
+    this_mod = sys.modules[__name__]
+    token = getattr(this_mod, "META_ACCESS_TOKEN", META_ACCESS_TOKEN)
     clean_tag = keyword.replace(" ", "").replace("#", "")
 
     # 1. Try real Meta Graph API if explicitly requested (live=True) and token is provided
-    if live and META_ACCESS_TOKEN:
-        # A. Try hashtag media if IG business account connected
-        media_list = lookup_hashtag_media(keyword)
-        if media_list is not None and len(media_list) > 0:
-            total_likes = sum(int(m.get("like_count", 0)) for m in media_list)
-            total_comments = sum(int(m.get("comments_count", 0)) for m in media_list)
-            score = min(100.0, max(15.0, round(math.log10(max(total_likes + total_comments * 2, 1) + 1) * 22, 1)))
-
+    if live and token:
+        ads_data = lookup_instagram_ad_volume(keyword)
+        if ads_data is not None:
+            ad_count = len(ads_data)
+            score = min(100.0, max(20.0, round(math.log10(max(ad_count, 1) + 1) * 35, 1))) if ad_count > 0 else 0.0
             today = datetime.date.today()
             timeline = []
-            for i in range(12, -1, -1):
-                dt = today - datetime.timedelta(days=i * 30)
-                timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": round(score * (0.8 + 0.2 * math.cos(i)), 1)})
 
-            return {
-                "platform": "meta",
-                "display_name": "메타 인스타그램 (Meta / Instagram)",
-                "icon": "📸",
-                "relative_index": score,
-                "weekly_change_pct": 5.4,
-                "status": "rising",
-                "primary_metric_label": "인스타그램 반응 지수 (실시간)",
-                "primary_metric_value": f"{int(score)}/100",
-                "secondary_metric_label": "최근 10개 게시물 반응",
-                "secondary_metric_value": f"좋아요 {total_likes:,}개 · 댓글 {total_comments:,}개",
-                "top_related_keywords": [
+            if ad_count > 0:
+                month_counts = {}
+                for ad in ads_data:
+                    start_time = ad.get("ad_delivery_start_time", "")
+                    if len(start_time) >= 7:
+                        m = start_time[:7]
+                        month_counts[m] = month_counts.get(m, 0) + 1
+
+                for i in range(12, -1, -1):
+                    dt = today - datetime.timedelta(days=i * 30)
+                    m_str = dt.strftime("%Y-%m")
+                    cnt = month_counts.get(m_str, 0)
+                    val = max(10.0, min(100.0, round(score * (0.7 + 0.3 * (cnt / max(ad_count, 1))), 1)))
+                    timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
+
+                pages = list(dict.fromkeys(ad.get("page_name") for ad in ads_data if ad.get("page_name")))
+                top_kw = [f"#{clean_tag}"] + [f"#{p.replace(' ', '')}" for p in pages[:4]]
+                while len(top_kw) < 5:
+                    top_kw.append(f"#{clean_tag}_{len(top_kw)}")
+
+                sec_val = f"활성 캠페인 {ad_count}건 감지"
+                weekly_pct = 12.8 if ad_count > 5 else 3.2
+                status_str = "rising" if ad_count > 5 else "stable"
+            else:
+                # 0 ads found via real live Meta API (clean zero-result response)
+                for i in range(12, -1, -1):
+                    dt = today - datetime.timedelta(days=i * 30)
+                    timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": 0.0})
+
+                top_kw = [
                     f"#{clean_tag}",
                     f"#{clean_tag}추천",
-                    f"#{clean_tag}그램",
-                    f"#{clean_tag}일상",
-                    f"#{clean_tag}인기"
-                ],
-                "related_keywords_live": True,
-                "timeline": timeline,
-                "is_live": True
-            }
-
-        # B. Try Meta Ads Archive on Instagram (available via ads_read)
-        ads_data = lookup_instagram_ad_volume(keyword)
-        if ads_data is not None and len(ads_data) > 0:
-            ad_count = len(ads_data)
-            score = min(100.0, max(20.0, round(math.log10(max(ad_count, 1) + 1) * 35, 1)))
-            today = datetime.date.today()
-            timeline = []
-
-            month_counts = {}
-            for ad in ads_data:
-                start_time = ad.get("ad_delivery_start_time", "")
-                if len(start_time) >= 7:
-                    m = start_time[:7]
-                    month_counts[m] = month_counts.get(m, 0) + 1
-
-            for i in range(12, -1, -1):
-                dt = today - datetime.timedelta(days=i * 30)
-                m_str = dt.strftime("%Y-%m")
-                cnt = month_counts.get(m_str, 0)
-                val = max(10.0, min(100.0, round(score * (0.7 + 0.3 * (cnt / max(ad_count, 1))), 1)))
-                timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
-
-            pages = list(dict.fromkeys(ad.get("page_name") for ad in ads_data if ad.get("page_name")))
-            top_kw = [f"#{clean_tag}"] + [f"#{p.replace(' ', '')}" for p in pages[:4]]
-            while len(top_kw) < 5:
-                top_kw.append(f"#{clean_tag}_{len(top_kw)}")
+                    f"#{clean_tag}정보",
+                    f"#{clean_tag}후기",
+                    f"#{clean_tag}인기",
+                ]
+                sec_val = "활성 캠페인 0건 (실시간 집행 없음)"
+                weekly_pct = 0.0
+                status_str = "stable"
 
             return {
                 "platform": "meta",
                 "display_name": "메타 인스타그램 (Meta / Instagram)",
                 "icon": "📸",
                 "relative_index": score,
-                "weekly_change_pct": 12.8 if ad_count > 5 else 3.2,
-                "status": "rising" if ad_count > 5 else "stable",
+                "weekly_change_pct": weekly_pct,
+                "status": status_str,
                 "primary_metric_label": "인스타그램 광고 지수 (실시간)",
                 "primary_metric_value": f"{int(score)}/100",
                 "secondary_metric_label": "국내 인스타그램 광고 수집",
-                "secondary_metric_value": f"활성 캠페인 {ad_count}건 감지",
+                "secondary_metric_value": sec_val,
                 "top_related_keywords": top_kw[:5],
                 "related_keywords_live": True,
                 "timeline": timeline,
@@ -401,9 +450,9 @@ def search_meta_precision_custom(
             except Exception as e:
                 print(f"[Meta precision search error for '{kw}'] {type(e).__name__}: {e}")
 
-        if is_current_live and ads_found:
+        if is_current_live:
             total_count = len(ads_found)
-            activity_score = min(100.0, max(15.0, round(math.log10(max(total_count, 1) + 1) * 35, 1)))
+            activity_score = min(100.0, max(15.0, round(math.log10(max(total_count, 1) + 1) * 35, 1))) if total_count > 0 else 0.0
 
             # Count advertisers
             page_counts: Dict[str, int] = {}

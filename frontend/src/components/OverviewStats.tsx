@@ -21,7 +21,9 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
       ? 'text-emerald-600 dark:text-[#A8FF1A]'
       : data.overall_sentiment === '하락'
         ? 'text-rose-600 dark:text-[#F34238]'
-        : 'text-slate-900 dark:text-white';
+        : data.overall_sentiment === '채널별 상이'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-slate-900 dark:text-white';
 
   return (
     <div className="space-y-4">

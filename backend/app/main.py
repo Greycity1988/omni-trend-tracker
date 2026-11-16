@@ -155,7 +155,7 @@ async def get_omni_trend(keyword: str, request: Request):
     elif all(c < 0 for c in changes):
         overall_sentiment = "하락"
     else:
-        overall_sentiment = "혼조"
+        overall_sentiment = "채널별 상이"
 
     if live:
         change_text = ", ".join(

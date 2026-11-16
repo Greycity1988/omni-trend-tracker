@@ -44,7 +44,7 @@ export interface CrossPlatformKeyword {
 export interface OmniTrendResponse {
   keyword: string;
   updated_at: string;
-  /** Worked out from platforms with live data only: '상승' | '하락' | '혼조' | '판단 불가' */
+  /** Worked out from platforms with live data only: '상승' | '하락' | '채널별 상이' | '판단 불가' */
   overall_sentiment: string;
   dominant_platform: string | null;
   peak_month: string | null;
