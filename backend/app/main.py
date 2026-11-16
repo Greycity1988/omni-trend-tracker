@@ -53,7 +53,7 @@ FETCHERS = {
     "naver": lambda keyword: fetch_naver_trend(keyword),
     "google": lambda keyword: fetch_google_trend(keyword),
     "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
-    "meta": lambda keyword: fetch_meta_trend(keyword),
+    "meta": lambda keyword: fetch_meta_trend(keyword, live=bool(META_ACCESS_TOKEN)),
 }
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",
