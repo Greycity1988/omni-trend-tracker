@@ -65,19 +65,19 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
           </p>
         </div>
 
-        {/* Channel Toggles (Pill Buttons) */}
+        {/* Channel Toggles (Pill Buttons with Iconic Brand Colors) */}
         <div className="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
           {platforms.naver && (
             <button
               type="button"
               onClick={() => toggleChannel('naver')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.naver
-                  ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-black dark:border-white shadow-sm'
+                  ? 'bg-[#03C75A] text-white border-[#03C75A] shadow-[0_0_10px_rgba(3,199,90,0.35)]'
                   : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-black" />
+              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
               <span>네이버{exampleTag('naver')}</span>
             </button>
           )}
@@ -86,13 +86,13 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('google')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.google
-                  ? 'bg-blue-600 text-white border-blue-600 dark:bg-[#A8FF1A] dark:text-black dark:border-[#A8FF1A] shadow-sm'
+                  ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-[0_0_10px_rgba(66,133,244,0.35)]'
                   : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-blue-200 dark:bg-black" />
+              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
               <span>구글{exampleTag('google')}</span>
             </button>
           )}
@@ -101,13 +101,13 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('pinterest')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.pinterest
-                  ? 'bg-[#F34238] text-white font-bold border-[#F34238] shadow-sm'
+                  ? 'bg-[#E60023] text-white border-[#E60023] shadow-[0_0_10px_rgba(230,0,35,0.35)]'
                   : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-white" />
+              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
               <span>핀터{exampleTag('pinterest')}</span>
             </button>
           )}
@@ -116,13 +116,13 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             <button
               type="button"
               onClick={() => toggleChannel('meta')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
                 activeChannels.meta
-                  ? 'bg-purple-600 text-white border-purple-600 dark:bg-[#AEAEAE] dark:text-black dark:border-[#AEAEAE] shadow-sm'
+                  ? 'bg-[#E1306C] text-white border-[#E1306C] shadow-[0_0_10px_rgba(225,48,108,0.35)]'
                   : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-white dark:bg-black" />
+              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
               <span>인스타{exampleTag('meta')}</span>
             </button>
           )}
@@ -134,21 +134,25 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
+              {/* Naver Signature Green */}
               <linearGradient id="colorNaver" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isDark ? '#FFFFFF' : '#059669'} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={isDark ? '#FFFFFF' : '#059669'} stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#03C75A" stopOpacity={isDark ? 0.3 : 0.2} />
+                <stop offset="95%" stopColor="#03C75A" stopOpacity={0.0} />
               </linearGradient>
+              {/* Google Iconic Blue */}
               <linearGradient id="colorGoogle" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isDark ? '#A8FF1A' : '#2563EB'} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={isDark ? '#A8FF1A' : '#2563EB'} stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#4285F4" stopOpacity={isDark ? 0.35 : 0.22} />
+                <stop offset="95%" stopColor="#4285F4" stopOpacity={0.0} />
               </linearGradient>
+              {/* Pinterest Red */}
               <linearGradient id="colorPin" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#F34238" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#F34238" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#E60023" stopOpacity={isDark ? 0.3 : 0.2} />
+                <stop offset="95%" stopColor="#E60023" stopOpacity={0.0} />
               </linearGradient>
+              {/* Instagram Magenta/Pink */}
               <linearGradient id="colorMeta" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isDark ? '#AEAEAE' : '#9333EA'} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={isDark ? '#AEAEAE' : '#9333EA'} stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#E1306C" stopOpacity={isDark ? 0.3 : 0.2} />
+                <stop offset="95%" stopColor="#E1306C" stopOpacity={0.0} />
               </linearGradient>
             </defs>
 
@@ -193,8 +197,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               <Area
                 type="monotone"
                 dataKey="naver"
-                stroke={isDark ? '#FFFFFF' : '#059669'}
-                strokeWidth={2.5}
+                stroke="#03C75A"
+                strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorNaver)"
                 strokeDasharray={dash('naver')}
@@ -205,7 +209,7 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               <Area
                 type="monotone"
                 dataKey="google"
-                stroke={isDark ? '#A8FF1A' : '#2563EB'}
+                stroke="#4285F4"
                 strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorGoogle)"
@@ -217,8 +221,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               <Area
                 type="monotone"
                 dataKey="pinterest"
-                stroke="#F34238"
-                strokeWidth={2.5}
+                stroke="#E60023"
+                strokeWidth={2.8}
                 fillOpacity={1}
                 fill="url(#colorPin)"
                 strokeDasharray={dash('pinterest')}
@@ -229,8 +233,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
               <Area
                 type="monotone"
                 dataKey="meta"
-                stroke={isDark ? '#AEAEAE' : '#9333EA'}
-                strokeWidth={2.5}
+                stroke="#E1306C"
+                strokeWidth={2.8}
                 fillOpacity={1}
                 fill="url(#colorMeta)"
                 strokeDasharray={dash('meta')}
