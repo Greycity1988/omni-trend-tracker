@@ -132,7 +132,7 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
       {/* Recharts Area Container */}
       <div className="h-72 sm:h-88 w-full pt-2">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={formattedData} margin={{ top: 10, right: 24, left: -20, bottom: 0 }}>
             <defs>
               {/* Naver Signature Green */}
               <linearGradient id="colorNaver" x1="0" y1="0" x2="0" y2="1">
@@ -188,6 +188,9 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                   pinterest: '핀터레스트',
                   meta: '인스타그램',
                 };
+                if (val === null || val === undefined) {
+                  return ['월말 마감 집계 중', labels[name] || name];
+                }
                 return [`${val} 점`, (labels[name] || name) + exampleTag(name as PlatformKey)];
               }}
               labelFormatter={(label) => `기간: ${label}`}
