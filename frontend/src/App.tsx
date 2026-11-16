@@ -80,12 +80,21 @@ export const App: React.FC = () => {
 
         {/* Error Alert Box */}
         {errorMessage && (
-          <div className="p-5 rounded-3xl border border-red-300 dark:border-[#F34238]/50 shadow-sm flex items-start space-x-3.5 bg-red-50 text-red-900 dark:bg-[#141416] dark:text-white transition-colors">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-[#F34238]" />
-            <div className="text-xs sm:text-sm space-y-1">
-              <span className="font-bold">분석 처리 알림: </span>
-              <span className="text-red-700 dark:text-[#AEAEAE]">{errorMessage}</span>
+          <div className="p-5 rounded-3xl border border-red-300 dark:border-[#F34238]/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-red-50 text-red-900 dark:bg-[#141416] dark:text-white transition-colors">
+            <div className="flex items-start space-x-3.5">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-[#F34238]" />
+              <div className="text-xs sm:text-sm space-y-1">
+                <span className="font-bold">분석 처리 알림: </span>
+                <span className="text-red-700 dark:text-[#AEAEAE]">{errorMessage}</span>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => fetchTrend(keyword)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white dark:bg-[#F34238] dark:hover:bg-[#d8352c] transition-colors flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap cursor-pointer"
+            >
+              다시 시도 (데이터 불러오기)
+            </button>
           </div>
         )}
 
@@ -94,7 +103,7 @@ export const App: React.FC = () => {
           <div className="py-20 flex flex-col items-center justify-center space-y-3 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-[#26272c] dark:bg-[#141416] transition-colors">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-[#A8FF1A]" />
             <p className="text-xs sm:text-sm text-slate-500 dark:text-[#AEAEAE] font-mono font-medium">
-              네이버, 구글, 인스타그램 트렌드 수집 및 지수화 중...
+              네이버, 구글, 핀터레스트, 인스타그램 트렌드 수집 및 지수화 중...
             </p>
           </div>
         )}
