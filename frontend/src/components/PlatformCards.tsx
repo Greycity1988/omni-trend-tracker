@@ -6,6 +6,38 @@ interface PlatformCardsProps {
   platforms: Partial<Record<string, PlatformMetric>>;
 }
 
+const BRAND_THEME: Record<string, {
+  color: string;
+  pillBorder: string;
+  pillText: string;
+  dotColor: string;
+}> = {
+  naver: {
+    color: '#03C75A',
+    pillBorder: 'hover:border-[#03C75A] hover:text-[#03C75A]',
+    pillText: 'group-hover:text-[#03C75A]',
+    dotColor: 'bg-[#03C75A]',
+  },
+  google: {
+    color: '#4285F4',
+    pillBorder: 'hover:border-[#4285F4] hover:text-[#4285F4]',
+    pillText: 'group-hover:text-[#4285F4]',
+    dotColor: 'bg-[#4285F4]',
+  },
+  meta: {
+    color: '#E1306C',
+    pillBorder: 'hover:border-[#E1306C] hover:text-[#E1306C]',
+    pillText: 'group-hover:text-[#E1306C]',
+    dotColor: 'bg-[#E1306C]',
+  },
+  pinterest: {
+    color: '#E60023',
+    pillBorder: 'hover:border-[#E60023] hover:text-[#E60023]',
+    pillText: 'group-hover:text-[#E60023]',
+    dotColor: 'bg-[#E60023]',
+  },
+};
+
 export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
   const platformList = Object.values(platforms).filter((p): p is PlatformMetric => Boolean(p));
 
@@ -25,6 +57,12 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {platformList.map((p) => {
           const isRising = p.weekly_change_pct >= 0;
+          const brand = BRAND_THEME[p.platform] || {
+            color: '#64748b',
+            pillBorder: 'hover:border-slate-400',
+            pillText: '',
+            dotColor: 'bg-slate-400',
+          };
 
           return (
             <div
@@ -39,11 +77,14 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   </span>
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center flex-wrap gap-x-2 gap-y-1">
-                      <span>{p.display_name}</span>
+                      <span className="flex items-center space-x-1.5">
+                        <span className={`w-2 h-2 rounded-full ${brand.dotColor} shadow-sm inline-block`} />
+                        <span>{p.display_name}</span>
+                      </span>
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border ${
                           p.is_live
-                            ? 'bg-[#A8FF1A] text-black border-transparent shadow-[0_0_8px_rgba(168,255,26,0.3)]'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-[#A8FF1A] dark:text-black dark:border-transparent dark:shadow-[0_0_8px_rgba(168,255,26,0.3)]'
                             : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]'
                         }`}
                       >
@@ -60,11 +101,11 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                 <div
                   className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-mono font-black ${
                     isRising
-                      ? 'bg-[#A8FF1A] text-black shadow-[0_0_8px_rgba(168,255,26,0.25)]'
+                      ? 'bg-emerald-100 text-emerald-900 dark:bg-[#A8FF1A] dark:text-black dark:shadow-[0_0_8px_rgba(168,255,26,0.25)]'
                       : 'bg-rose-500 text-white shadow-sm'
                   }`}
                 >
-                  {isRising ? <TrendingUp className="w-3.5 h-3.5 text-black" /> : <TrendingDown className="w-3.5 h-3.5 text-white" />}
+                  {isRising ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5 text-white" />}
                   <span>{p.weekly_change_pct > 0 ? `+${p.weekly_change_pct}%` : `${p.weekly_change_pct}%`}</span>
                 </div>
               </div>
@@ -99,7 +140,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   {p.top_related_keywords.map((kw, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200 hover:border-emerald-600 dark:bg-[#1a1b1f] dark:text-white dark:border-[#2e2f36] dark:hover:border-[#A8FF1A] transition-colors"
+                      className={`px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200 ${brand.pillBorder} dark:bg-[#1a1b1f] dark:text-white dark:border-[#2e2f36] transition-colors cursor-default`}
                     >
                       {kw}
                     </span>

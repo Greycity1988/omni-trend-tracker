@@ -7,6 +7,47 @@ interface RelatedKeywordsProps {
   keyword: string;
 }
 
+interface PlatformStyleConfig {
+  badge: string;
+  dotColor: string;
+  hoverBorder: string;
+  hoverText: string;
+}
+
+const PLATFORM_STYLES: Record<string, PlatformStyleConfig> = {
+  '네이버': {
+    badge: 'bg-[#03C75A]/10 text-[#03C75A] border-[#03C75A]/30 dark:bg-[#03C75A]/15 dark:text-[#03C75A] dark:border-[#03C75A]/40',
+    dotColor: 'bg-[#03C75A]',
+    hoverBorder: 'hover:border-[#03C75A]/60 dark:hover:border-[#03C75A]/60',
+    hoverText: 'group-hover:text-[#03C75A] dark:group-hover:text-[#03C75A]',
+  },
+  '구글': {
+    badge: 'bg-[#4285F4]/10 text-[#4285F4] border-[#4285F4]/30 dark:bg-[#4285F4]/15 dark:text-[#6ba3ff] dark:border-[#4285F4]/40',
+    dotColor: 'bg-[#4285F4]',
+    hoverBorder: 'hover:border-[#4285F4]/60 dark:hover:border-[#4285F4]/60',
+    hoverText: 'group-hover:text-[#4285F4] dark:group-hover:text-[#6ba3ff]',
+  },
+  '인스타': {
+    badge: 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 dark:bg-[#E1306C]/15 dark:text-[#ff6b9d] dark:border-[#E1306C]/40',
+    dotColor: 'bg-[#E1306C]',
+    hoverBorder: 'hover:border-[#E1306C]/60 dark:hover:border-[#E1306C]/60',
+    hoverText: 'group-hover:text-[#E1306C] dark:group-hover:text-[#ff6b9d]',
+  },
+  '핀터': {
+    badge: 'bg-[#E60023]/10 text-[#E60023] border-[#E60023]/30 dark:bg-[#E60023]/15 dark:text-[#ff526b] dark:border-[#E60023]/40',
+    dotColor: 'bg-[#E60023]',
+    hoverBorder: 'hover:border-[#E60023]/60 dark:hover:border-[#E60023]/60',
+    hoverText: 'group-hover:text-[#E60023] dark:group-hover:text-[#ff526b]',
+  },
+};
+
+const DEFAULT_STYLE: PlatformStyleConfig = {
+  badge: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]',
+  dotColor: 'bg-slate-400',
+  hoverBorder: 'hover:border-slate-400 dark:hover:border-slate-500',
+  hoverText: 'group-hover:text-slate-900 dark:group-hover:text-white',
+};
+
 export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords, keyword }) => {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-6 sm:p-8 space-y-5 dark:border-[#26272c] dark:bg-[#141416] transition-colors">
@@ -24,26 +65,34 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords, keyw
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {keywords.map((item, idx) => {
-          let platformBadge = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]';
-          if (item.platform === '네이버') platformBadge = 'bg-slate-100 text-slate-900 border-slate-300 dark:bg-[#1a1b1f] dark:text-white dark:border-white/20';
-          if (item.platform === '구글') platformBadge = 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-[#1a1b1f] dark:text-[#A8FF1A] dark:border-[#A8FF1A]/30';
-          if (item.platform === '인스타') platformBadge = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#AEAEAE]/30';
-          if (item.platform === '핀터') platformBadge = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-[#1a1b1f] dark:text-[#F34238] dark:border-[#F34238]/30';
+          const style = PLATFORM_STYLES[item.platform] || DEFAULT_STYLE;
 
           return (
             <div
               key={idx}
-              className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:border-slate-300 dark:border-[#26272c] dark:bg-[#1a1b1f] dark:hover:border-[#3e404a] transition-all flex flex-col justify-between space-y-2 group"
+              className={`p-3.5 rounded-2xl border border-slate-200 bg-slate-50 ${style.hoverBorder} dark:border-[#26272c] dark:bg-[#1a1b1f] transition-all flex flex-col justify-between space-y-2 group shadow-sm`}
             >
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${platformBadge}`}>
-                  {item.platform}
+                <span
+                  className={`inline-flex items-center space-x-1.5 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${style.badge}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${style.dotColor} shadow-sm flex-shrink-0`} />
+                  <span>{item.platform}</span>
                 </span>
-                <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-[#AEAEAE]">
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                    item.is_live
+                      ? 'font-bold bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-[#A8FF1A] dark:border-emerald-800/40'
+                      : 'font-medium bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]'
+                  }`}
+                >
                   {item.is_live ? '실제' : '예시'}
                 </span>
               </div>
-              <div className="font-bold text-xs text-slate-900 group-hover:text-emerald-700 dark:text-white dark:group-hover:text-[#A8FF1A] transition-colors truncate" title={item.keyword}>
+              <div
+                className={`font-bold text-xs text-slate-900 ${style.hoverText} dark:text-white transition-colors truncate`}
+                title={item.keyword}
+              >
                 {item.keyword}
               </div>
             </div>
