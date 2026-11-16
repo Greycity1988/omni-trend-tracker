@@ -54,3 +54,40 @@ export interface OmniTrendResponse {
   platforms: Partial<Record<PlatformKey, PlatformMetric>>;
   cross_platform_keywords: CrossPlatformKeyword[];
 }
+
+// ── Naver DataLab Advanced Multi-topic Types ──
+export interface DataLabKeywordGroupInput {
+  id: string;
+  groupName: string;
+  keywordsString: string;
+}
+
+export interface DataLabDataPoint {
+  period: string;
+  ratio: number;
+}
+
+export interface DataLabGroupResult {
+  title: string;
+  keywords: string[];
+  data: DataLabDataPoint[];
+  peak_period?: string;
+  peak_ratio?: number;
+  latest_ratio?: number;
+  change_pct?: number;
+}
+
+export interface DataLabSearchResponse {
+  start_date: string;
+  end_date: string;
+  time_unit: 'date' | 'week' | 'month';
+  results: DataLabGroupResult[];
+  is_live: boolean;
+}
+
+export interface ApiKeysStatus {
+  naver: boolean;
+  google: boolean;
+  meta: boolean;
+  pinterest: boolean;
+}

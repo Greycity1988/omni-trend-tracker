@@ -5,9 +5,22 @@ import unicodedata
 from collections import OrderedDict, defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .config import ALLOWED_ORIGINS, ENABLED_PLATFORMS
-from .models import OmniTrendResponse, TimelinePoint, PlatformMetric
-from .services.naver import fetch_naver_trend
+from .config import (
+    ALLOWED_ORIGINS,
+    ENABLED_PLATFORMS,
+    NAVER_CLIENT_ID,
+    NAVER_CLIENT_SECRET,
+    META_ACCESS_TOKEN,
+    PINTEREST_ACCESS_TOKEN,
+)
+from .models import (
+    OmniTrendResponse,
+    TimelinePoint,
+    PlatformMetric,
+    DataLabSearchRequest,
+    DataLabSearchResponse,
+)
+from .services.naver import fetch_naver_trend, search_naver_datalab_custom
 from .services.google import fetch_google_trend
 from .services.pinterest import fetch_pinterest_trend
 from .services.meta import fetch_meta_trend
@@ -22,7 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -186,3 +199,34 @@ async def get_omni_trend(keyword: str, request: Request):
     while len(_cache) > CACHE_MAX_ENTRIES:
         _cache.popitem(last=False)
     return response
+
+
+@app.post("/api/datalab/search", response_model=DataLabSearchResponse)
+async def datalab_search(req: DataLabSearchRequest):
+    """Naver DataLab multi-topic search query identical to datalab.naver.com."""
+    try:
+        res = search_naver_datalab_custom(
+            start_date=req.start_date,
+            end_date=req.end_date,
+            time_unit=req.time_unit,
+            keyword_groups=[{"group_name": g.group_name, "keywords": g.keywords} for g in req.keyword_groups],
+            device=req.device,
+            gender=req.gender,
+            ages=req.ages,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"데이터랩 조회 오류: {str(e)}")
+
+
+@app.get("/api/keys/status")
+async def keys_status():
+    """Returns the live connection status of each platform API."""
+    return {
+        "naver": bool(NAVER_CLIENT_ID and NAVER_CLIENT_SECRET),
+        "google": True,
+        "meta": bool(META_ACCESS_TOKEN),
+        "pinterest": bool(PINTEREST_ACCESS_TOKEN),
+    }

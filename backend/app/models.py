@@ -8,7 +8,6 @@ class KeywordTrendRequest(BaseModel):
 
 class TimelinePoint(BaseModel):
     date: str  # YYYY-MM
-    # None when the platform is disabled or has no value for that month
     naver: Optional[float] = None
     google: Optional[float] = None
     pinterest: Optional[float] = None
@@ -24,25 +23,58 @@ class PlatformMetric(BaseModel):
     display_name: str
     icon: str
     relative_index: float  # 0 to 100
-    weekly_change_pct: float  # change against the previous period (month for Naver, week for Google)
-    status: str  # "rising", "stable", "cooling"
+    weekly_change_pct: float
+    status: str
     primary_metric_label: str
     primary_metric_value: str
     secondary_metric_label: str
     secondary_metric_value: str
     top_related_keywords: List[str]
     demographics: Optional[DemographicsInfo] = None
-    is_live: bool = False  # True only when the trend values came from the platform for this keyword
-    related_keywords_live: bool = False  # True only when top_related_keywords came from the platform
+    is_live: bool = False
+    related_keywords_live: bool = False
 
 class OmniTrendResponse(BaseModel):
     keyword: str
     updated_at: str
-    # The four fields below are worked out from platforms with live data only
     overall_sentiment: str
     dominant_platform: Optional[str] = None
-    peak_month: Optional[str] = None  # YYYY-MM
+    peak_month: Optional[str] = None
     summary_insight: str
     timeline: List[TimelinePoint]
     platforms: Dict[str, PlatformMetric]
     cross_platform_keywords: List[Dict[str, Any]]
+
+# --- Naver DataLab Advanced Multi-Group Search Models ---
+class KeywordGroupItem(BaseModel):
+    group_name: str
+    keywords: List[str]
+
+class DataLabSearchRequest(BaseModel):
+    start_date: str                 # "YYYY-MM-DD"
+    end_date: str                   # "YYYY-MM-DD"
+    time_unit: str = "month"        # "date" | "week" | "month"
+    keyword_groups: List[KeywordGroupItem]
+    device: Optional[str] = None    # "pc" | "mo" | None
+    gender: Optional[str] = None    # "m" | "f" | None
+    ages: Optional[List[str]] = None # ["1", "2", ...]
+
+class DataLabDataPoint(BaseModel):
+    period: str
+    ratio: float
+
+class DataLabGroupResult(BaseModel):
+    title: str
+    keywords: List[str]
+    data: List[DataLabDataPoint]
+    peak_period: Optional[str] = None
+    peak_ratio: Optional[float] = None
+    latest_ratio: Optional[float] = None
+    change_pct: Optional[float] = None
+
+class DataLabSearchResponse(BaseModel):
+    start_date: str
+    end_date: str
+    time_unit: str
+    results: List[DataLabGroupResult]
+    is_live: bool

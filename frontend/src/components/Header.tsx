@@ -14,6 +14,7 @@ interface HeaderProps {
   onOpenFeedback?: () => void;
   onOpenDonation?: () => void;
   onOpenSuiteDrawer?: () => void;
+  onOpenApiModal?: () => void;
   theme?: Theme;
   onToggleTheme?: () => void;
 }
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenFeedback,
   onOpenDonation,
   onOpenSuiteDrawer,
+  onOpenApiModal,
   theme,
   onToggleTheme,
 }) => {
@@ -85,6 +87,18 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Coffee className="w-3.5 h-3.5 mr-1.5 text-amber-500 dark:text-[#AEAEAE]" strokeWidth={2} />
               <span>Coffee</span>
+            </button>
+          )}
+
+          {onOpenApiModal && (
+            <button
+              type="button"
+              onClick={onOpenApiModal}
+              className="inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-full bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 transition shadow-sm cursor-pointer whitespace-nowrap dark:bg-[#202126] dark:hover:bg-[#2c2d33] dark:text-white dark:border-[#2e2f36]"
+              title="플랫폼 API 연동 상태 및 실제 데이터 연결"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#A8FF1A] mr-1.5 shadow-[0_0_6px_#03C75A]" />
+              <span>API 연동</span>
             </button>
           )}
 
