@@ -91,3 +91,54 @@ export interface ApiKeysStatus {
   meta: boolean;
   pinterest: boolean;
 }
+
+// ── Google Trends Precision Studio Types ──
+export interface GoogleTrendsDataPoint {
+  period: string;
+  values: Record<string, number>;
+}
+
+export interface GoogleKeywordSummary {
+  keyword: string;
+  peak_period?: string;
+  peak_value: number;
+  average_value: number;
+  latest_value: number;
+  change_pct: number;
+  related_queries: string[];
+}
+
+export interface GoogleTrendsSearchResponse {
+  timeframe: string;
+  geo: string;
+  gprop: string;
+  keywords: string[];
+  timeline: GoogleTrendsDataPoint[];
+  summaries: Record<string, GoogleKeywordSummary>;
+  is_live: boolean;
+}
+
+// ── Meta Instagram Precision Studio Types ──
+export interface MetaAdvertiserPage {
+  page_name: string;
+  ad_count: number;
+}
+
+export interface MetaKeywordAdSummary {
+  keyword: string;
+  total_ads_found: number;
+  activity_score: number;
+  top_advertisers: MetaAdvertiserPage[];
+  timeline: { period: string; count: number }[];
+  sample_page_names: string[];
+}
+
+export interface MetaPrecisionSearchResponse {
+  keywords: string[];
+  country: string;
+  status: string;
+  results: MetaKeywordAdSummary[];
+  is_live: boolean;
+  notice?: string;
+}
+

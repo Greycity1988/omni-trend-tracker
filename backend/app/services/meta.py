@@ -224,3 +224,141 @@ def fetch_meta_trend(keyword: str, live: bool = False) -> Dict[str, Any]:
         "timeline": timeline,
         "is_live": False
     }
+
+
+def search_meta_precision_custom(
+    keywords: List[str],
+    country: str = "KR",
+    status: str = "ALL",
+    publisher_platform: str = "INSTAGRAM",
+) -> Dict[str, Any]:
+    """
+    Precision Multi-keyword & Brand Ad Campaign Intelligence via Meta Ads Archive.
+    Compares ad volume, top brand advertisers, and campaign delivery distribution.
+    """
+    clean_kws = [k.strip() for k in keywords if k.strip()][:5]
+    if not clean_kws:
+        raise ValueError("최소 1개 이상의 키워드 또는 브랜드를 입력해주세요.")
+
+    import requests
+
+    headers = {"Authorization": f"Bearer {META_ACCESS_TOKEN.strip()}"} if META_ACCESS_TOKEN else {}
+    results = []
+    has_live_success = False
+    notice = None
+
+    for kw in clean_kws:
+        clean_tag = kw.replace(" ", "").replace("#", "")
+        ads_found = []
+        is_current_live = False
+
+        if META_ACCESS_TOKEN:
+            try:
+                ad_countries = f'["{country}"]' if country != "ALL" else '["KR","US","JP"]'
+                platforms = '["INSTAGRAM"]' if publisher_platform == "INSTAGRAM" else '["INSTAGRAM","FACEBOOK"]'
+                r = requests.get(
+                    f"{GRAPH_API}/ads_archive",
+                    headers=headers,
+                    params={
+                        "ad_reached_countries": ad_countries,
+                        "search_terms": kw,
+                        "ad_active_status": status,
+                        "publisher_platforms": platforms,
+                        "fields": "id,ad_delivery_start_time,page_name",
+                        "limit": 50,
+                    },
+                    timeout=5,
+                )
+                if r.status_code == 200:
+                    ads_found = r.json().get("data", [])
+                    is_current_live = True
+                    has_live_success = True
+                elif r.status_code == 401:
+                    notice = "메타 액세스 토큰이 만료되었습니다. 상단 [API 키 연동]에서 신규 토큰을 입력하시면 실시간 광고 데이터로 즉시 전환됩니다."
+            except Exception as e:
+                print(f"[Meta precision search error for '{kw}'] {type(e).__name__}: {e}")
+
+        if is_current_live and ads_found:
+            total_count = len(ads_found)
+            activity_score = min(100.0, max(15.0, round(math.log10(max(total_count, 1) + 1) * 35, 1)))
+
+            # Count advertisers
+            page_counts: Dict[str, int] = {}
+            month_counts: Dict[str, int] = {}
+            today = datetime.date.today()
+
+            for ad in ads_found:
+                p_name = ad.get("page_name") or "미분류 브랜드"
+                page_counts[p_name] = page_counts.get(p_name, 0) + 1
+                start_dt = ad.get("ad_delivery_start_time", "")
+                if len(start_dt) >= 7:
+                    m = start_dt[:7]
+                    month_counts[m] = month_counts.get(m, 0) + 1
+
+            sorted_pages = sorted(page_counts.items(), key=lambda x: x[1], reverse=True)
+            top_advertisers = [{"page_name": p, "ad_count": c} for p, c in sorted_pages[:8]]
+
+            timeline = []
+            for i in range(11, -1, -1):
+                dt = today - datetime.timedelta(days=i * 30)
+                m_str = dt.strftime("%Y-%m")
+                timeline.append({"period": m_str, "count": month_counts.get(m_str, 0)})
+
+            results.append({
+                "keyword": kw,
+                "total_ads_found": total_count,
+                "activity_score": activity_score,
+                "top_advertisers": top_advertisers,
+                "timeline": timeline,
+                "sample_page_names": [p["page_name"] for p in top_advertisers[:5]],
+            })
+        else:
+            # Deterministic simulation based on keyword
+            rng = example_rng(kw, f"meta_precision_{country}_{status}")
+            simulated_ads = 15 + rng.randrange(60)
+            score = min(100.0, max(20.0, round(math.log10(simulated_ads + 1) * 32 + rng.uniform(-5, 5), 1)))
+
+            brand_samples = [
+                f"{kw} 공식 스토어",
+                f"{kw} 프리미엄 Lab",
+                f"{kw} 코리아",
+                f"올리브영 {kw}",
+                f"트렌디 {kw} 마켓",
+            ]
+            top_advertisers = [
+                {"page_name": brand_samples[0], "ad_count": int(simulated_ads * 0.35)},
+                {"page_name": brand_samples[1], "ad_count": int(simulated_ads * 0.25)},
+                {"page_name": brand_samples[2], "ad_count": int(simulated_ads * 0.18)},
+                {"page_name": brand_samples[3], "ad_count": int(simulated_ads * 0.12)},
+                {"page_name": brand_samples[4], "ad_count": int(simulated_ads * 0.10)},
+            ]
+
+            today = datetime.date.today()
+            timeline = []
+            for i in range(11, -1, -1):
+                dt = today - datetime.timedelta(days=i * 30)
+                m_str = dt.strftime("%Y-%m")
+                cnt = max(0, int((simulated_ads / 12) * (0.8 + 0.6 * math.cos(i * 0.6)) + rng.uniform(-1, 2)))
+                timeline.append({"period": m_str, "count": cnt})
+
+            results.append({
+                "keyword": kw,
+                "total_ads_found": simulated_ads,
+                "activity_score": score,
+                "top_advertisers": top_advertisers,
+                "timeline": timeline,
+                "sample_page_names": [p["page_name"] for p in top_advertisers],
+            })
+
+    if not has_live_success and not notice:
+        notice = "메타 광고 아카이브 API 키가 등록되지 않았거나 권한 확인 중입니다. 현재는 정밀 시뮬레이션 데이터를 제공합니다."
+
+    return {
+        "keywords": clean_kws,
+        "country": country,
+        "status": status,
+        "results": results,
+        "is_live": has_live_success,
+        "notice": notice,
+    }
+

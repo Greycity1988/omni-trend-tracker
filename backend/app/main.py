@@ -19,11 +19,15 @@ from .models import (
     PlatformMetric,
     DataLabSearchRequest,
     DataLabSearchResponse,
+    GoogleTrendsSearchRequest,
+    GoogleTrendsSearchResponse,
+    MetaPrecisionSearchRequest,
+    MetaPrecisionSearchResponse,
 )
 from .services.naver import fetch_naver_trend, search_naver_datalab_custom
-from .services.google import fetch_google_trend
+from .services.google import fetch_google_trend, search_google_trends_custom
 from .services.pinterest import fetch_pinterest_trend
-from .services.meta import fetch_meta_trend
+from .services.meta import fetch_meta_trend, search_meta_precision_custom
 
 app = FastAPI(
     title="Omni Trend Tracker API",
@@ -53,7 +57,7 @@ FETCHERS = {
     "naver": lambda keyword: fetch_naver_trend(keyword),
     "google": lambda keyword: fetch_google_trend(keyword),
     "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
-    "meta": lambda keyword: fetch_meta_trend(keyword, live=bool(META_ACCESS_TOKEN)),
+    "meta": lambda keyword: fetch_meta_trend(keyword),
 }
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",
@@ -226,6 +230,41 @@ async def datalab_search(req: DataLabSearchRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"데이터랩 조회 오류: {str(e)}")
+
+
+@app.post("/api/google/search", response_model=GoogleTrendsSearchResponse)
+async def google_trends_search(req: GoogleTrendsSearchRequest):
+    """Google Trends multi-keyword comparison query (1~5 keywords)."""
+    try:
+        res = search_google_trends_custom(
+            keywords=req.keywords,
+            timeframe=req.timeframe,
+            geo=req.geo,
+            gprop=req.gprop,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"구글 트렌드 조회 오류: {str(e)}")
+
+
+@app.post("/api/meta/search", response_model=MetaPrecisionSearchResponse)
+async def meta_precision_search(req: MetaPrecisionSearchRequest):
+    """Meta Instagram Ads Archive multi-keyword & brand intelligence search."""
+    try:
+        res = search_meta_precision_custom(
+            keywords=req.keywords,
+            country=req.country,
+            status=req.status,
+            publisher_platform=req.publisher_platform,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"인스타그램 광고 조회 오류: {str(e)}")
+
 
 
 @app.get("/api/keys/status")

@@ -7,18 +7,28 @@ import { PlatformCards } from './components/PlatformCards';
 import { DemographicsChart } from './components/DemographicsChart';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { NaverDataLabStudio } from './components/NaverDataLabStudio';
+import { GoogleTrendsStudio } from './components/GoogleTrendsStudio';
+import { InstagramPrecisionStudio } from './components/InstagramPrecisionStudio';
 import { ApiConnectModal } from './components/ApiConnectModal';
 import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { DonationModal } from './components/DonationModal';
 import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
-import { OmniTrendResponse, DataLabSearchResponse, ApiKeysStatus } from './types';
-import { AlertCircle, Loader2, Sparkles, Layers } from 'lucide-react';
+import {
+  OmniTrendResponse,
+  DataLabSearchResponse,
+  GoogleTrendsSearchResponse,
+  MetaPrecisionSearchResponse,
+  ApiKeysStatus,
+} from './types';
+import { AlertCircle, Loader2, Sparkles, Layers, Globe, Instagram, Clock } from 'lucide-react';
 import { useTheme } from './utils/useTheme';
 
 export const App: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState<'cross_channel' | 'naver_datalab'>('cross_channel');
+  const [activeTab, setActiveTab] = useState<
+    'cross_channel' | 'naver_datalab' | 'google_trends' | 'meta_instagram'
+  >('cross_channel');
 
   // Cross-channel search state
   const [keyword, setKeyword] = useState<string>('선크림');
@@ -26,8 +36,10 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Naver DataLab Custom Search state
+  // Precision Studios loading states
   const [isDataLabLoading, setIsDataLabLoading] = useState<boolean>(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
+  const [isMetaLoading, setIsMetaLoading] = useState<boolean>(false);
 
   // API Status & Modals
   const [apiStatus, setApiStatus] = useState<ApiKeysStatus | null>(null);
@@ -105,6 +117,60 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleSearchGoogleTrends = async (payload: {
+    keywords: string[];
+    timeframe: string;
+    geo: string;
+    gprop: string;
+  }): Promise<GoogleTrendsSearchResponse | null> => {
+    try {
+      setIsGoogleLoading(true);
+      const res = await fetch('/api/google/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || `구글 트렌드 조회 실패 (HTTP ${res.status})`);
+      }
+      return await res.json();
+    } catch (err: unknown) {
+      console.error('Google Trends error:', err);
+      alert(err instanceof Error ? err.message : '구글 트렌드 조회 중 오류가 발생했습니다.');
+      return null;
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleSearchMetaPrecision = async (payload: {
+    keywords: string[];
+    country: string;
+    status: string;
+    publisher_platform: string;
+  }): Promise<MetaPrecisionSearchResponse | null> => {
+    try {
+      setIsMetaLoading(true);
+      const res = await fetch('/api/meta/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || `인스타그램 광고 조회 실패 (HTTP ${res.status})`);
+      }
+      return await res.json();
+    } catch (err: unknown) {
+      console.error('Meta Instagram error:', err);
+      alert(err instanceof Error ? err.message : '인스타그램 광고 조회 중 오류가 발생했습니다.');
+      return null;
+    } finally {
+      setIsMetaLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTrend('선크림');
     fetchKeysStatus();
@@ -125,38 +191,79 @@ export const App: React.FC = () => {
 
       {/* ── Mode Selection Tabs (Sticky Below Header) ── */}
       <div className="border-b border-slate-200 dark:border-[#202126] bg-white/90 dark:bg-[#141416]/90 backdrop-blur-md sticky top-[65px] z-30 transition-colors shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center space-x-2 py-2.5 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('cross_channel')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
-              activeTab === 'cross_channel'
-                ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-black'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-emerald-500 dark:text-[#A8FF1A]" />
-            <span>크로스 채널 트렌드 통합 분석 (4개 매체)</span>
-          </button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-2.5 overflow-x-auto gap-3">
+          <div className="flex items-center space-x-2">
+            {/* Tab 1: Cross-Channel Trend */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('cross_channel')}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'cross_channel'
+                  ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-black'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-emerald-500 dark:text-[#A8FF1A]" />
+              <span>크로스 채널 트렌드 통합</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('naver_datalab')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
-              activeTab === 'naver_datalab'
-                ? 'bg-[#03C75A] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
-            }`}
+            {/* Tab 2: Naver DataLab Studio */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('naver_datalab')}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'naver_datalab'
+                  ? 'bg-[#03C75A] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>네이버 데이터랩 정밀 분석</span>
+            </button>
+
+            {/* Tab 3: Google Trends Studio */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('google_trends')}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'google_trends'
+                  ? 'bg-[#4285F4] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
+              }`}
+            >
+              <Globe className="w-4 h-4" />
+              <span>구글 트렌드 정밀 비교</span>
+            </button>
+
+            {/* Tab 4: Instagram Ads Studio */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('meta_instagram')}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'meta_instagram'
+                  ? 'bg-[#E1306C] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
+              }`}
+            >
+              <Instagram className="w-4 h-4" />
+              <span>인스타그램 광고 인텔리전스</span>
+            </button>
+          </div>
+
+          {/* Pinterest Pending Status Pill */}
+          <div
+            title="핀터레스트 개발자 포털 Trial Access 심사 승인 대기 중 (승인 시 자동 활성화)"
+            className="flex-shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] flex items-center space-x-1.5 cursor-help"
           >
-            <Layers className="w-4 h-4" />
-            <span>네이버 데이터랩 정밀 분석 (주제어 1~5 다중 비교)</span>
-          </button>
+            <Clock className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+            <span>핀터레스트: Trial 심사 대기 중</span>
+          </div>
         </div>
       </div>
 
       {/* ── Main Dashboard Workspace ── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
-        {activeTab === 'cross_channel' ? (
+        {activeTab === 'cross_channel' && (
           <>
             {/* Search Bar */}
             <SearchBar
@@ -210,11 +317,30 @@ export const App: React.FC = () => {
               </div>
             )}
           </>
-        ) : (
-          /* ── Naver DataLab Precision Studio Mode ── */
+        )}
+
+        {/* ── Naver DataLab Precision Studio Mode ── */}
+        {activeTab === 'naver_datalab' && (
           <NaverDataLabStudio
             onSearchDataLab={handleSearchDataLab}
             isLoading={isDataLabLoading}
+          />
+        )}
+
+        {/* ── Google Trends Precision Studio Mode ── */}
+        {activeTab === 'google_trends' && (
+          <GoogleTrendsStudio
+            onSearchGoogleTrends={handleSearchGoogleTrends}
+            isLoading={isGoogleLoading}
+          />
+        )}
+
+        {/* ── Meta Instagram Precision Studio Mode ── */}
+        {activeTab === 'meta_instagram' && (
+          <InstagramPrecisionStudio
+            onSearchMetaPrecision={handleSearchMetaPrecision}
+            isLoading={isMetaLoading}
+            onOpenApiModal={() => setIsApiModalOpen(true)}
           />
         )}
       </main>
