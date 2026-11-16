@@ -273,6 +273,19 @@ async def meta_precision_search(req: MetaPrecisionSearchRequest):
         raise HTTPException(status_code=500, detail=f"인스타그램 광고 조회 오류: {str(e)}")
 
 
+@app.post("/api/meta/refresh-token")
+async def meta_refresh_token():
+    """Exchanges current Meta access token for a new 60-day token using App ID & App Secret."""
+    from .services.meta import refresh_meta_long_lived_token
+    res = refresh_meta_long_lived_token()
+    if not res:
+        raise HTTPException(
+            status_code=400,
+            detail="토큰 연장 실패: META_APP_ID 및 META_APP_SECRET이 .env에 등록되어 있는지 확인해주세요."
+        )
+    return res
+
+
 
 @app.get("/api/keys/status")
 async def keys_status():

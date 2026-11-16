@@ -6,6 +6,8 @@ load_dotenv()
 NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
 NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
 PINTEREST_ACCESS_TOKEN = os.getenv("PINTEREST_ACCESS_TOKEN", "")
+META_APP_ID = os.getenv("META_APP_ID", "1450941336450931")
+META_APP_SECRET = os.getenv("META_APP_SECRET", "")
 META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN", "")
 PORT = int(os.getenv("PORT", "8000"))
 

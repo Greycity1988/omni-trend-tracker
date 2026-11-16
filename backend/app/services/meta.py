@@ -8,6 +8,107 @@ from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
 GRAPH_API = "https://graph.facebook.com/v21.0"
 
 
+def update_env_meta_token(new_token: str) -> None:
+    """Safely updates META_ACCESS_TOKEN in backend/.env without altering other lines."""
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+    if not os.path.exists(env_path):
+        return
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        new_lines = []
+        found = False
+        for line in lines:
+            if line.strip().startswith("META_ACCESS_TOKEN="):
+                new_lines.append(f"META_ACCESS_TOKEN={new_token.strip()}\n")
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f"META_ACCESS_TOKEN={new_token.strip()}\n")
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    except Exception as e:
+        print(f"[update_env_meta_token error] {e}")
+
+
+def refresh_meta_long_lived_token() -> Optional[Dict[str, Any]]:
+    """
+    Exchanges current META_ACCESS_TOKEN for a brand new 60-day token using META_APP_ID & META_APP_SECRET.
+    Updates in-memory token and writes new token to backend/.env automatically.
+    """
+    from .. import config
+    app_id = config.META_APP_ID.strip() if hasattr(config, "META_APP_ID") else ""
+    app_secret = config.META_APP_SECRET.strip() if hasattr(config, "META_APP_SECRET") else ""
+    current_token = config.META_ACCESS_TOKEN.strip() if hasattr(config, "META_ACCESS_TOKEN") else ""
+
+    if not app_id or not app_secret or not current_token:
+        return None
+
+    try:
+        import requests
+        params = {
+            "grant_type": "fb_exchange_token",
+            "client_id": app_id,
+            "client_secret": app_secret,
+            "fb_exchange_token": current_token,
+        }
+        r = requests.get(f"{GRAPH_API}/oauth/access_token", params=params, timeout=6)
+        if r.status_code == 200:
+            data = r.json()
+            new_token = data.get("access_token")
+            expires_in = data.get("expires_in", 5184000)
+            if new_token:
+                config.META_ACCESS_TOKEN = new_token
+                update_env_meta_token(new_token)
+                days = expires_in // 86400
+                print(f"[Meta Auto-Renewal] Successfully renewed 60-day token! Valid for {days} days.")
+                return {
+                    "success": True,
+                    "expires_in_days": days,
+                    "new_token_prefix": new_token[:15] + "...",
+                }
+        else:
+            print(f"[Meta Auto-Renewal] Exchange failed ({r.status_code}): {r.text}")
+    except Exception as e:
+        print(f"[Meta Auto-Renewal error] {e}")
+    return None
+
+
+def check_and_auto_renew_token(days_threshold: int = 7) -> bool:
+    """
+    Checks token debug info. If it expires in less than `days_threshold` days,
+    automatically exchanges it for a new 60-day token.
+    """
+    from .. import config
+    app_id = getattr(config, "META_APP_ID", "")
+    app_secret = getattr(config, "META_APP_SECRET", "")
+    token = getattr(config, "META_ACCESS_TOKEN", "")
+
+    if not app_id or not app_secret or not token:
+        return False
+
+    try:
+        import requests, time
+        r = requests.get(
+            f"{GRAPH_API}/debug_token",
+            params={"input_token": token.strip(), "access_token": token.strip()},
+            timeout=4
+        )
+        if r.status_code == 200:
+            d = r.json().get("data", {})
+            expires_at = d.get("expires_at", 0)
+            now = int(time.time())
+            if 0 < expires_at < (now + days_threshold * 86400):
+                print(f"[Meta Auto-Renewal] Token expires soon (in {(expires_at - now)//86400} days). Auto-renewing...")
+                res = refresh_meta_long_lived_token()
+                return bool(res and res.get("success"))
+    except Exception as e:
+        print(f"[check_and_auto_renew_token error] {e}")
+    return False
+
+
+
 def lookup_hashtag_media(keyword: str) -> Optional[List[Dict[str, Any]]]:
     """
     Recent public posts for the keyword's hashtag via Meta Graph API v21.0, or None.
@@ -99,6 +200,25 @@ def lookup_instagram_ad_volume(keyword: str) -> Optional[List[Dict[str, Any]]]:
         if r.status_code == 200:
             return r.json().get("data", [])
         elif r.status_code == 401:
+            print("[Meta Ads Archive] Token expired (HTTP 401). Attempting auto-renewal...")
+            renewed = refresh_meta_long_lived_token()
+            if renewed and renewed.get("success"):
+                from .. import config
+                r_retry = requests.get(
+                    f"{GRAPH_API}/ads_archive",
+                    headers={"Authorization": f"Bearer {config.META_ACCESS_TOKEN.strip()}"},
+                    params={
+                        "ad_reached_countries": '["KR"]',
+                        "search_terms": keyword,
+                        "ad_active_status": "ALL",
+                        "publisher_platforms": '["INSTAGRAM"]',
+                        "fields": "id,ad_delivery_start_time,page_name",
+                        "limit": 50,
+                    },
+                    timeout=5,
+                )
+                if r_retry.status_code == 200:
+                    return r_retry.json().get("data", [])
             print("[Meta Ads Archive] Token expired or invalid (HTTP 401). Falling back.")
     except Exception as e:
         print(f"[Meta Ads Archive error] {type(e).__name__}")
