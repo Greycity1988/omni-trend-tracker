@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import os
 import time
 import unicodedata
 from collections import OrderedDict, defaultdict, deque
@@ -53,11 +54,17 @@ _cache: "OrderedDict[str, tuple]" = OrderedDict()
 _lookups: dict = {}
 
 # Resolved at call time so tests can replace the fetchers
+def _fetch_meta(keyword: str):
+    try:
+        return fetch_meta_trend(keyword, live=bool(META_ACCESS_TOKEN and os.getenv("ENABLE_LIVE_META", "1") == "1"))
+    except TypeError:
+        return fetch_meta_trend(keyword)
+
 FETCHERS = {
     "naver": lambda keyword: fetch_naver_trend(keyword),
     "google": lambda keyword: fetch_google_trend(keyword),
     "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
-    "meta": lambda keyword: fetch_meta_trend(keyword),
+    "meta": _fetch_meta,
 }
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",

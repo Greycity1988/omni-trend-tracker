@@ -24,6 +24,7 @@ def lookup_hashtag_media(keyword: str) -> Optional[List[Dict[str, Any]]]:
         # 1. Verify token
         r_me = requests.get(f"{GRAPH_API}/me", headers=headers, params={"fields": "id"}, timeout=4)
         if r_me.status_code != 200:
+            print(f"[Meta Graph API] /me returned HTTP {r_me.status_code}")
             return None
 
         # 2. Discover linked Instagram Business Account IDs
@@ -97,6 +98,8 @@ def lookup_instagram_ad_volume(keyword: str) -> Optional[List[Dict[str, Any]]]:
         )
         if r.status_code == 200:
             return r.json().get("data", [])
+        elif r.status_code == 401:
+            print("[Meta Ads Archive] Token expired or invalid (HTTP 401). Falling back.")
     except Exception as e:
         print(f"[Meta Ads Archive error] {type(e).__name__}")
     return None

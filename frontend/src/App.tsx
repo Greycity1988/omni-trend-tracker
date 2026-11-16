@@ -21,7 +21,7 @@ import {
   MetaPrecisionSearchResponse,
   ApiKeysStatus,
 } from './types';
-import { AlertCircle, Loader2, Sparkles, Layers, Globe, Instagram, Clock } from 'lucide-react';
+import { AlertCircle, Loader2, Sparkles, Layers, Globe, Instagram } from 'lucide-react';
 import { useTheme } from './utils/useTheme';
 
 export const App: React.FC = () => {
@@ -248,15 +248,6 @@ export const App: React.FC = () => {
               <Instagram className="w-4 h-4" />
               <span>인스타그램 광고 인텔리전스</span>
             </button>
-          </div>
-
-          {/* Pinterest Pending Status Pill */}
-          <div
-            title="핀터레스트 개발자 포털 Trial Access 심사 승인 대기 중 (승인 시 자동 활성화)"
-            className="flex-shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] flex items-center space-x-1.5 cursor-help"
-          >
-            <Clock className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-            <span>핀터레스트: Trial 심사 대기 중</span>
           </div>
         </div>
       </div>

@@ -44,7 +44,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
             분석할 키워드를 입력하세요
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-[#AEAEAE] mt-1">
-            네이버 검색 지수와 구글 관심도를 한 번에 비교합니다. 인스타그램은 예시 데이터이며, 핀터레스트는 준비 중입니다.
+            네이버 데이터랩, 구글 트렌드, 메타 인스타그램의 크로스 채널 검색 관심도를 한 번에 비교 분석합니다.
           </p>
         </div>
       </div>
