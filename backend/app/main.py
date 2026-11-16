@@ -194,7 +194,14 @@ async def get_omni_trend(keyword: str, request: Request):
         cross_platform_keywords=cross_keywords[:15]
     )
 
-    _cache[keyword] = (time.monotonic() + CACHE_TTL_SECONDS, response)
+    # If core live platforms had a temporary network glitch, use short 5s TTL instead of 600s
+    has_fallback = any(
+        not res.get("is_live", False)
+        for name, res in results.items()
+        if name in ("naver", "google")
+    )
+    ttl = 5 if has_fallback else CACHE_TTL_SECONDS
+    _cache[keyword] = (time.monotonic() + ttl, response)
     _cache.move_to_end(keyword)
     while len(_cache) > CACHE_MAX_ENTRIES:
         _cache.popitem(last=False)
