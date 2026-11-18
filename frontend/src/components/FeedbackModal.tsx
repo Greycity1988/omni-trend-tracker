@@ -33,7 +33,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="건의 / 기능 제안" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div
         className="w-full max-w-lg rounded-3xl border border-[#26272c] shadow-2xl overflow-hidden flex flex-col"
         style={{ backgroundColor: '#141416' }}
