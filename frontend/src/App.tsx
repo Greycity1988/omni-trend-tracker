@@ -12,6 +12,8 @@ import { DonationModal } from './components/DonationModal';
 import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
 import { OmniTrendResponse } from './types';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { SuiteFooter } from './components/SuiteFooter';
+import { OTTLogo } from './components/OTTLogo';
 
 export const App: React.FC = () => {
   const [keyword, setKeyword] = useState<string>('선크림');
@@ -118,17 +120,11 @@ export const App: React.FC = () => {
       </main>
 
       {/* ── Global Footer ── */}
-      <footer
-        className="mt-auto border-t border-[#26272c] py-8 text-center text-xs text-[#AEAEAE] space-y-1.5"
-        style={{ backgroundColor: '#141416' }}
-      >
-        <p className="font-bold text-white text-sm tracking-tight">
-          OTT — Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
-        </p>
-        <p className="text-xs text-[#AEAEAE] font-mono">
-          Naver DataLab • Google Trends • Meta Instagram • CAL · BEP Master 패밀리 스위트
-        </p>
-      </footer>
+      <SuiteFooter
+        appName="OTT (Omni Trend Tracker)"
+        emblem={<OTTLogo size={36} />}
+        onOpenDonation={() => setIsDonationOpen(true)}
+      />
 
       {/* ── Global Modals ── */}
       <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
