@@ -1,9 +1,9 @@
 import React from 'react';
+import { OTTLogo } from './OTTLogo';
 import {
   MessageSquare,
   Coffee,
   HelpCircle,
-  TrendingUp,
   Menu,
 } from 'lucide-react';
 
@@ -28,8 +28,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         {/* Brand & Identity */}
         <div className="flex items-center space-x-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-[#000000] border border-[#26272c] flex items-center justify-center text-white font-mono font-black text-sm tracking-tighter shadow-inner flex-shrink-0">
-            <TrendingUp className="w-5 h-5 text-[#A8FF1A]" strokeWidth={2.5} />
+          {/* Same logo tile as the ACV header */}
+          <div className="group p-1.5 rounded-2xl bg-white border border-slate-200 flex-shrink-0 shadow-sm dark:bg-[#000000] dark:border-[#26272c] dark:shadow-inner">
+            <OTTLogo size={38} className="transition-transform duration-200 group-hover:scale-105" />
           </div>
 
           <div className="min-w-0">
