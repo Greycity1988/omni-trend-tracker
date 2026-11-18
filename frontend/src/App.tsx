@@ -14,7 +14,8 @@ import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { DonationModal } from './components/DonationModal';
 import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
-import { Footer } from './components/Footer';
+import { SuiteFooter } from './components/SuiteFooter';
+import { OTTLogo } from './components/OTTLogo';
 import {
   OmniTrendResponse,
   DataLabSearchResponse,
@@ -338,7 +339,9 @@ export const App: React.FC = () => {
       </main>
 
       {/* ── Global Footer ── */}
-      <Footer
+      <SuiteFooter
+        appName="OTT (Omni Trend Tracker)"
+        emblem={<OTTLogo size={36} showText={false} />}
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenDonation={() => setIsDonationOpen(true)}
       />
