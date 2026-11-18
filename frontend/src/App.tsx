@@ -14,6 +14,7 @@ import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { DonationModal } from './components/DonationModal';
 import { SuiteNavigationDrawer } from './components/SuiteNavigationDrawer';
+import { Footer } from './components/Footer';
 import {
   OmniTrendResponse,
   DataLabSearchResponse,
@@ -337,14 +338,10 @@ export const App: React.FC = () => {
       </main>
 
       {/* ── Global Footer ── */}
-      <footer className="mt-auto border-t border-slate-200 py-8 text-center text-xs text-slate-500 space-y-1.5 transition-colors bg-white dark:border-[#26272c] dark:bg-[#141416] dark:text-[#AEAEAE]">
-        <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">
-          OTT — Omni Trend Tracker • Multi-channel Trend & Volume Intelligence
-        </p>
-        <p className="text-xs text-slate-500 dark:text-[#AEAEAE] font-mono">
-          Naver DataLab • Google Trends • Meta Instagram • Pinterest • ACV · CAL · BEP Master 패밀리 스위트
-        </p>
-      </footer>
+      <Footer
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+        onOpenDonation={() => setIsDonationOpen(true)}
+      />
 
       {/* ── Global Modals ── */}
       <ApiConnectModal
