@@ -171,7 +171,8 @@ export const SuiteNavigationDrawer: React.FC<SuiteNavigationDrawerProps> = ({
           <div className="space-y-3">
             {suiteApps.map((app) => {
               const isCurrent = app.id === currentApp;
-              const isDev = !!app.isDeveloping;
+              // No deployed address yet counts as in development, so the card never links to nowhere.
+              const isDev = !!app.isDeveloping || !app.url;
               const IconComp = app.icon;
 
               const cardContent = (
@@ -227,8 +228,8 @@ export const SuiteNavigationDrawer: React.FC<SuiteNavigationDrawerProps> = ({
                       </>
                     ) : (
                       <>
-                        <span>Local URL: {app.url.replace('http://', '')}</span>
-                        <span className="text-emerald-700 dark:text-[#A8FF1A]">100% 로컬 무료</span>
+                        <span>{app.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+                        <span className="text-emerald-700 dark:text-[#A8FF1A]">무료</span>
                       </>
                     )}
                   </div>

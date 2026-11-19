@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, MessageSquare, Copy, Check, Send, CheckCircle2 } from 'lucide-react';
-import { DEV_EMAIL } from '../constants/links';
+import { X, MessageSquare, Send, CheckCircle2, ExternalLink } from 'lucide-react';
+import { GITHUB_ISSUES_URL, buildIssueUrl } from '../constants/links';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -8,7 +8,6 @@ interface FeedbackModalProps {
 }
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
-  const [copied, setCopied] = useState(false);
   const [category, setCategory] = useState('신규 채널 추가');
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -25,21 +24,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
   if (!isOpen) return null;
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(DEV_EMAIL);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
+    // Feedback is received on GitHub Issues: open a prefilled issue the user submits there.
+    window.open(buildIssueUrl(category, message), '_blank', 'noopener,noreferrer');
     setSubmitted(true);
     setTimeout(() => {
       setMessage('');
       setSubmitted(false);
       onClose();
-    }, 1800);
+    }, 4000);
   };
 
   return (
@@ -77,9 +72,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               <div className="w-12 h-12 rounded-full bg-[#A8FF1A] text-black flex items-center justify-center mx-auto shadow-md">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white">소중한 의견이 접수되었습니다!</h4>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">GitHub 이슈 작성 화면을 새 탭으로 열었습니다</h4>
               <p className="text-slate-500 dark:text-[#AEAEAE]">
-                보내주신 피드백은 검토 후 OTT 다음 버전에 적극 반영하겠습니다.
+                GitHub에서 'Submit new issue'를 눌러야 접수됩니다. GitHub 계정이 필요합니다.
               </p>
             </div>
           ) : (
@@ -117,29 +112,18 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 />
               </div>
 
-              {/* Direct Email Callout */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#26272c] flex items-center justify-between text-xs text-slate-500 dark:text-[#AEAEAE]">
-                <div className="space-y-0.5">
-                  <span className="font-mono text-[10px] uppercase text-slate-400 dark:text-[#6E6E6E]">Direct Developer Contact</span>
-                  <div className="font-mono text-slate-900 dark:text-white text-xs font-bold">{DEV_EMAIL}</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyEmail}
-                  className="h-8 px-3 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#202126] dark:hover:bg-[#2c2d33] dark:border-[#2e2f36] dark:text-white font-medium text-xs flex items-center space-x-1 cursor-pointer"
+              {/* Where feedback goes */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#26272c] flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-[#AEAEAE]">
+                <span>의견은 GitHub 이슈로 접수됩니다. 보내기를 누르면 내용이 채워진 작성 화면이 열립니다.</span>
+                <a
+                  href={GITHUB_ISSUES_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 px-3 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 dark:bg-[#202126] dark:hover:bg-[#2c2d33] dark:border-[#2e2f36] dark:text-white font-medium text-xs flex items-center space-x-1 flex-shrink-0"
                 >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#A8FF1A]" />
-                      <span className="text-emerald-700 dark:text-[#A8FF1A] font-bold">복사됨</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-slate-400 dark:text-[#AEAEAE]" />
-                      <span>이메일 복사</span>
-                    </>
-                  )}
-                </button>
+                  <span>이슈 목록</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
 
               {/* Submit Button */}
@@ -150,7 +134,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   className="w-full h-11 rounded-full bg-[#A8FF1A] hover:bg-[#b8ff33] disabled:opacity-40 text-black font-extrabold text-xs transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                 >
                   <Send className="w-4 h-4 text-black" />
-                  <span>피드백 전송하기</span>
+                  <span>GitHub 이슈로 보내기</span>
                 </button>
               </div>
             </>
