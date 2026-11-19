@@ -123,7 +123,7 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
               </h4>
             </div>
             <p className="text-xs text-slate-600 dark:text-[#AEAEAE] leading-relaxed">
-              Meta Graph API를 연동하면 해시태그별 실제 공개 게시물 수와 반응(좋아요·댓글) 지표를 실시간으로 집계할 수 있습니다.
+              Meta Graph API를 연동하면 Meta 광고 라이브러리에서 키워드와 관련된 국내 인스타그램 광고를 실시간으로 모아 광고 지수와 주요 광고주를 보여 줍니다.
             </p>
             <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700 dark:text-[#AEAEAE]">
               <li>

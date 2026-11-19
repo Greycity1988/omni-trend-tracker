@@ -133,7 +133,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
             <div className="space-y-2 text-[11px]">
               <div className="flex items-start space-x-2">
                 <span className="font-bold text-emerald-700 dark:text-[#A8FF1A] font-mono">01.</span>
-                <span><strong>OTT</strong>에서 급상승 키워드와 연령·성별 오디언스 프로필을 확인합니다.</span>
+                <span><strong>OTT</strong>에서 급상승 키워드와 채널별 관심도 흐름을 확인합니다. 성별·연령별 비교는 네이버 데이터랩 스튜디오에서 필터로 볼 수 있습니다.</span>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="font-bold text-emerald-700 dark:text-[#A8FF1A] font-mono">02.</span>

@@ -13,11 +13,6 @@ class TimelinePoint(BaseModel):
     pinterest: Optional[float] = None
     meta: Optional[float] = None
 
-class DemographicsInfo(BaseModel):
-    male_ratio: float
-    female_ratio: float
-    age_groups: Dict[str, float]
-
 class PlatformMetric(BaseModel):
     platform: str
     display_name: str
@@ -30,7 +25,6 @@ class PlatformMetric(BaseModel):
     secondary_metric_label: str
     secondary_metric_value: str
     top_related_keywords: List[str]
-    demographics: Optional[DemographicsInfo] = None
     is_live: bool = False
     related_keywords_live: bool = False
 

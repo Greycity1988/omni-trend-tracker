@@ -4,7 +4,6 @@ import { SearchBar } from './components/SearchBar';
 import { OverviewStats } from './components/OverviewStats';
 import { UnifiedTrendChart } from './components/UnifiedTrendChart';
 import { PlatformCards } from './components/PlatformCards';
-import { DemographicsChart } from './components/DemographicsChart';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { NaverDataLabStudio } from './components/NaverDataLabStudio';
 import { GoogleTrendsStudio } from './components/GoogleTrendsStudio';
@@ -301,11 +300,6 @@ export const App: React.FC = () => {
                 <OverviewStats data={data} />
                 <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} />
                 <PlatformCards platforms={data.platforms} />
-                <DemographicsChart
-                  naverDemo={data.platforms.naver?.demographics}
-                  pinterestDemo={data.platforms.pinterest?.demographics}
-                  metaDemo={data.platforms.meta?.demographics}
-                />
                 <RelatedKeywords keywords={data.cross_platform_keywords} keyword={data.keyword} />
               </div>
             )}

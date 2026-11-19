@@ -9,12 +9,6 @@ export interface TimelinePoint {
   meta: number | null;
 }
 
-export interface DemographicsInfo {
-  male_ratio: number;
-  female_ratio: number;
-  age_groups: Record<string, number>;
-}
-
 export interface PlatformMetric {
   platform: PlatformKey;
   display_name: string;
@@ -27,7 +21,6 @@ export interface PlatformMetric {
   secondary_metric_label: string;
   secondary_metric_value: string;
   top_related_keywords: string[];
-  demographics?: DemographicsInfo;
   /** true only when the trend values came from the platform for this keyword */
   is_live: boolean;
   /** true only when top_related_keywords came from the platform */
