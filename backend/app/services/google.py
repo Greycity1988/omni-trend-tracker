@@ -18,6 +18,26 @@ except Exception:
     pass
 
 
+def drop_partial_rows(df):
+    """Drop the period Google marks as still in progress (isPartial).
+
+    The latest week or month is usually incomplete, so comparing it with the previous full
+    period always looks like a drop. Both the change rate and the chart use full periods only.
+    """
+    if df is None or df.empty or "isPartial" not in df.columns:
+        return df
+    partial = df["isPartial"].astype(str).str.lower().isin(["true", "1"])
+    return df[~partial]
+
+
+def change_pct(series: List[float]) -> float:
+    """Change of the last full period against the one before it, in percent."""
+    if len(series) < 2:
+        return 0.0
+    prev_val = series[-2]
+    return round(((series[-1] - prev_val) / max(prev_val, 1)) * 100, 1)
+
+
 def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "KR") -> Dict[str, Any]:
     # Try up to 2 attempts with short jittered backoff on rate-limits
     for attempt in range(2):
@@ -25,7 +45,7 @@ def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "
             from pytrends.request import TrendReq
             pytrends = TrendReq(hl="ko-KR", tz=540, timeout=(5, 10), retries=1)
             pytrends.build_payload([keyword], timeframe=timeframe, geo=geo)
-            df = pytrends.interest_over_time()
+            df = drop_partial_rows(pytrends.interest_over_time())
             
             timeline = []
             if not df.empty and keyword in df.columns:
@@ -35,12 +55,7 @@ def fetch_google_trend(keyword: str, timeframe: str = "today 12-m", geo: str = "
                     timeline.append({"date": dt_str, "value": val})
                 
                 # calculate weekly change
-                if len(timeline) >= 2:
-                    last_val = timeline[-1]["value"]
-                    prev_val = timeline[-2]["value"]
-                    change = round(((last_val - prev_val) / max(prev_val, 1)) * 100, 1)
-                else:
-                    change = 0.0
+                change = change_pct([p["value"] for p in timeline])
                 
                 # Related queries (real ones when Google returns them, otherwise combinations to try)
                 try:
@@ -124,7 +139,7 @@ def search_google_trends_custom(
             from pytrends.request import TrendReq
             pt = TrendReq(hl="ko-KR", tz=540, timeout=(6, 12), retries=1)
             pt.build_payload(clean_kws, timeframe=timeframe, geo=geo if geo else "", gprop=gprop if gprop else "")
-            df = pt.interest_over_time()
+            df = drop_partial_rows(pt.interest_over_time())
 
             if not df.empty:
                 timeline = []
@@ -158,8 +173,7 @@ def search_google_trends_custom(
                         peak_period = timeline[max_idx]["period"]
                         avg_val = round(sum(series) / len(series), 1)
                         latest_val = series[-1]
-                        prev_val = series[-2] if len(series) >= 2 else series[0]
-                        change = round(((latest_val - prev_val) / max(prev_val, 1)) * 100, 1)
+                        change = change_pct(series)
 
                         summaries[kw]["peak_value"] = max_val
                         summaries[kw]["peak_period"] = peak_period
