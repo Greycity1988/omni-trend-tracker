@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { OverviewStats } from './components/OverviewStats';
@@ -7,7 +7,6 @@ import { PlatformCards } from './components/PlatformCards';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { NaverDataLabStudio } from './components/NaverDataLabStudio';
 import { GoogleTrendsStudio } from './components/GoogleTrendsStudio';
-import { InstagramPrecisionStudio } from './components/InstagramPrecisionStudio';
 import { ApiConnectModal } from './components/ApiConnectModal';
 import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -19,20 +18,23 @@ import {
   OmniTrendResponse,
   DataLabSearchResponse,
   GoogleTrendsSearchResponse,
-  MetaPrecisionSearchResponse,
   ApiKeysStatus,
+  TrendUnit,
 } from './types';
-import { AlertCircle, Loader2, Sparkles, Layers, Globe, Instagram } from 'lucide-react';
+import { AlertCircle, Loader2, Sparkles, Layers, Globe } from 'lucide-react';
 import { useTheme } from './utils/useTheme';
 
 export const App: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<
-    'cross_channel' | 'naver_datalab' | 'google_trends' | 'meta_instagram'
+    'cross_channel' | 'naver_datalab' | 'google_trends'
   >('cross_channel');
 
   // Cross-channel search state
   const [keyword, setKeyword] = useState<string>('');
+  const [unit, setUnit] = useState<TrendUnit>('month');
+  // Only the latest request may update the screen (switching units quickly sends several).
+  const latestRequest = useRef(0);
   const [data, setData] = useState<OmniTrendResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,7 +42,6 @@ export const App: React.FC = () => {
   // Precision Studios loading states
   const [isDataLabLoading, setIsDataLabLoading] = useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
-  const [isMetaLoading, setIsMetaLoading] = useState<boolean>(false);
 
   // API Status & Modals
   const [apiStatus, setApiStatus] = useState<ApiKeysStatus | null>(null);
@@ -62,28 +63,30 @@ export const App: React.FC = () => {
     }
   };
 
-  const fetchTrend = async (query: string) => {
+  const fetchTrend = async (query: string, period: TrendUnit = unit) => {
+    const requestId = ++latestRequest.current;
     try {
       setIsLoading(true);
       setErrorMessage(null);
       setKeyword(query);
 
-      const res = await fetch(`/api/trend/${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/trend/${encodeURIComponent(query)}?unit=${period}`);
       if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
         throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 로컬 백엔드 서버(포트 8000)를 가동해 주세요.');
       }
       if (!res.ok) {
-        throw new Error(`데이터 조회 실패 (HTTP ${res.status})`);
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail && typeof errJson.detail === 'string' ? errJson.detail : `데이터 조회 실패 (HTTP ${res.status})`);
       }
       const json: OmniTrendResponse = await res.json();
-      setData(json);
+      if (requestId === latestRequest.current) setData(json);
     } catch (err: unknown) {
       console.error('Failed to fetch trend:', err);
       let msg = '트렌드 데이터를 불러오는 중 오류가 발생했습니다.';
       if (err instanceof Error) msg = err.message;
-      setErrorMessage(msg);
+      if (requestId === latestRequest.current) setErrorMessage(msg);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequest.current) setIsLoading(false);
     }
   };
 
@@ -142,33 +145,6 @@ export const App: React.FC = () => {
       return null;
     } finally {
       setIsGoogleLoading(false);
-    }
-  };
-
-  const handleSearchMetaPrecision = async (payload: {
-    keywords: string[];
-    country: string;
-    status: string;
-    publisher_platform: string;
-  }): Promise<MetaPrecisionSearchResponse | null> => {
-    try {
-      setIsMetaLoading(true);
-      const res = await fetch('/api/meta/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.detail || `인스타그램 광고 조회 실패 (HTTP ${res.status})`);
-      }
-      return await res.json();
-    } catch (err: unknown) {
-      console.error('Meta Instagram error:', err);
-      alert(err instanceof Error ? err.message : '인스타그램 광고 조회 중 오류가 발생했습니다.');
-      return null;
-    } finally {
-      setIsMetaLoading(false);
     }
   };
 
@@ -237,19 +213,6 @@ export const App: React.FC = () => {
               <span>구글 트렌드 정밀 비교</span>
             </button>
 
-            {/* Tab 4: Instagram Ads Studio */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('meta_instagram')}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap ${
-                activeTab === 'meta_instagram'
-                  ? 'bg-[#E1306C] text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-[#AEAEAE] dark:hover:text-white dark:hover:bg-[#202126]'
-              }`}
-            >
-              <Instagram className="w-4 h-4" />
-              <span>인스타그램 광고 인텔리전스</span>
-            </button>
           </div>
         </div>
       </div>
@@ -263,6 +226,12 @@ export const App: React.FC = () => {
               onSearch={(kw) => fetchTrend(kw)}
               isLoading={isLoading}
               currentKeyword={keyword}
+              unit={unit}
+              onUnitChange={(next) => {
+                setUnit(next);
+                // Re-run the current keyword in the new unit; before the first search just remember it.
+                if (keyword) fetchTrend(keyword, next);
+              }}
             />
 
             {/* Error Alert Box */}
@@ -300,7 +269,7 @@ export const App: React.FC = () => {
               <div className="py-16 px-6 flex flex-col items-center justify-center space-y-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 text-center dark:border-[#2e2f36] dark:bg-[#141416]/60 transition-colors">
                 <p className="text-sm font-bold text-slate-800 dark:text-white">키워드를 입력하고 검색해 보세요</p>
                 <p className="text-xs text-slate-500 dark:text-[#AEAEAE]">
-                  네이버·구글·인스타그램의 최근 1년 관심도를 한 차트로 비교합니다. 예: 선크림, 러닝화, 린넨셔츠
+                  네이버와 구글의 검색 관심도를 일·주·월 단위로 한 차트에서 비교합니다. 예: 선크림, 러닝화, 린넨셔츠
                 </p>
               </div>
             )}
@@ -309,7 +278,7 @@ export const App: React.FC = () => {
             {data && (
               <div className="space-y-8 animate-fadeIn">
                 <OverviewStats data={data} />
-                <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} />
+                <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} unit={data.unit} />
                 <PlatformCards platforms={data.platforms} />
                 <RelatedKeywords keywords={data.cross_platform_keywords} keyword={data.keyword} />
               </div>
@@ -333,14 +302,6 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* ── Meta Instagram Precision Studio Mode ── */}
-        {activeTab === 'meta_instagram' && (
-          <InstagramPrecisionStudio
-            onSearchMetaPrecision={handleSearchMetaPrecision}
-            isLoading={isMetaLoading}
-            onOpenApiModal={() => setIsApiModalOpen(true)}
-          />
-        )}
       </main>
 
       {/* ── Global Footer ── */}

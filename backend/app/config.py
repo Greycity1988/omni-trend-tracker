@@ -5,10 +5,6 @@ load_dotenv()
 
 NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
 NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
-PINTEREST_ACCESS_TOKEN = os.getenv("PINTEREST_ACCESS_TOKEN", "")
-META_APP_ID = os.getenv("META_APP_ID", "1450941336450931")
-META_APP_SECRET = os.getenv("META_APP_SECRET", "")
-META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN", "")
 PORT = int(os.getenv("PORT", "8000"))
 
 # Local-only by default. Set HOST explicitly only when the backend is deployed behind a real host.
@@ -24,9 +20,8 @@ ALLOWED_ORIGINS = [
 ]
 
 # Platforms the API reports on (comma-separated in ENABLED_PLATFORMS to override).
-# Pinterest is left out until its trends API access is approved.
-KNOWN_PLATFORMS = ("naver", "google", "pinterest", "meta")
+KNOWN_PLATFORMS = ("naver", "google")
 ENABLED_PLATFORMS = [
     name for name in KNOWN_PLATFORMS
-    if name in {p.strip() for p in os.getenv("ENABLED_PLATFORMS", "naver,google,meta").split(",")}
+    if name in {p.strip() for p in os.getenv("ENABLED_PLATFORMS", "naver,google").split(",")}
 ]

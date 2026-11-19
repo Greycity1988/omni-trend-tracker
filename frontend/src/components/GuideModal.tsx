@@ -66,12 +66,13 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
           <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 dark:border-[#26272c] dark:bg-[#1a1b1f] space-y-2">
             <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-[#A8FF1A]" />
-              <span>왜 단일 플랫폼이 아닌 4대 채널 통합 조회가 필요할까요?</span>
+              <span>왜 네이버와 구글을 함께 봐야 할까요?</span>
             </div>
             <p className="text-[11px] leading-relaxed">
-              각 플랫폼은 이용자 행동(Intent)의 단계가 완전히 다릅니다.
-              <strong>네이버</strong>는 즉각적 구매와 가격 비교, <strong>구글</strong>은 심층 정보 탐색과 글로벌 수요,
-              <strong>인스타그램</strong>은 시각적 발견과 충동 구매, <strong>핀터레스트</strong>는 시즌 선행 탐색을 대변합니다.
+              두 검색 엔진은 이용자 행동(Intent)의 단계가 다릅니다.
+              <strong>네이버</strong>는 국내 구매와 가격 비교, <strong>구글</strong>은 정보 탐색과 유튜브·해외 수요를 대변합니다.
+              두 곡선이 같이 움직이면 수요가 넓게 퍼진 것이고, 한쪽만 오르면 특정 경로에서 생긴 관심입니다.
+              일·주·월 단위를 바꿔 보면 하루짜리 화제인지 계절 수요인지 구분할 수 있습니다.
             </p>
           </div>
 
@@ -79,7 +80,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-1.5 font-mono">
               <Layers className="w-4 h-4 text-emerald-600 dark:text-[#A8FF1A]" />
-              <span>4대 플랫폼별 데이터 해석 기준</span>
+              <span>채널별 데이터 해석 기준</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#26272c] space-y-1.5">
@@ -102,25 +103,6 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#26272c] space-y-1.5">
-                <div className="font-bold text-slate-800 dark:text-[#AEAEAE] flex items-center space-x-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-500 dark:bg-[#AEAEAE]" />
-                  <span>인스타그램 (Meta)</span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-[#AEAEAE]">
-                  비주얼 트렌드와 바이럴 태그 언급량을 기반으로 소구점 확장 아이디어를 도출합니다.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#26272c] space-y-1.5">
-                <div className="font-bold text-rose-600 dark:text-[#F34238] flex items-center space-x-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 dark:bg-[#F34238]" />
-                  <span>핀터레스트 (Pinterest)</span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-[#AEAEAE]">
-                  시즌 시작 1~2개월 전 기획 단계의 무드보드 및 선행 검색 패턴을 포착합니다.
-                </p>
-              </div>
             </div>
           </div>
 

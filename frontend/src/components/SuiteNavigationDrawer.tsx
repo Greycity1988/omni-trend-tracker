@@ -76,7 +76,7 @@ export const SuiteNavigationDrawer: React.FC<SuiteNavigationDrawerProps> = ({
     {
       id: 'ott',
       name: 'OTT • Omni Trend Tracker',
-      tagline: '네이버·구글·인스타그램 3대 채널 통합 검색 트렌드 & 연관 키워드',
+      tagline: '네이버·구글 검색 관심도를 일·주·월로 비교 & 연관 키워드',
       role: '통합 트렌드 발굴',
       url: OTT_URL,
       icon: TrendingUp,

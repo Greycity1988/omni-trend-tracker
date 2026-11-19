@@ -1,5 +1,6 @@
 import React from 'react';
 import { OmniTrendResponse } from '../types';
+import { UNIT_TEXT, describePeriod } from '../utils/trendUnit';
 import { Flame, Target, CalendarDays, TrendingUp, Sparkles } from 'lucide-react';
 
 interface OverviewStatsProps {
@@ -9,8 +10,6 @@ interface OverviewStatsProps {
 const CHANNEL_SHORT_NAMES: Record<string, string> = {
   naver: '네이버',
   google: '구글',
-  pinterest: '핀터',
-  meta: '인스타',
 };
 
 export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
@@ -33,17 +32,17 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
         <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-5 dark:border-[#26272c] dark:bg-[#141416] flex flex-col justify-between space-y-2 transition-colors">
           <div className="flex items-center justify-between">
             <span className="tracking-wider text-[11px] font-bold text-slate-500 dark:text-[#AEAEAE] font-mono uppercase">
-              PEAK MONTH
+              {UNIT_TEXT[data.unit].peakTitle}
             </span>
             <CalendarDays className="w-4 h-4 text-slate-400 dark:text-[#AEAEAE]" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white">
-              {data.peak_month ?? '–'}
+            <span className={`${data.unit === 'month' ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'} font-black font-mono text-slate-900 dark:text-white`}>
+              {data.peak_period ? describePeriod(data.peak_period, data.unit) : '–'}
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] font-mono mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
-            최근 1년 중 최고 관심도 구간
+            {UNIT_TEXT[data.unit].span} 중 최고 관심도 구간
           </div>
         </div>
 
@@ -81,7 +80,7 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
-            직전 구간 대비 모멘텀 변화율
+            {{ day: '전일', week: '전주', month: '전월' }[data.unit]} 대비 모멘텀 변화율
           </div>
         </div>
 

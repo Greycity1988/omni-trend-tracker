@@ -31,18 +31,6 @@ class PrecisionStudiosTests(unittest.TestCase):
             self.assertIn("summaries", data)
             self.assertIn("선크림", data["summaries"])
 
-    def test_meta_precision_search(self):
-        res = self.client.post("/api/meta/search", json={
-            "keywords": ["나이키", "아디다스"],
-            "country": "KR",
-            "status": "ALL"
-        })
-        self.assertEqual(res.status_code, 200)
-        data = res.json()
-        self.assertEqual(data["keywords"], ["나이키", "아디다스"])
-        self.assertEqual(len(data["results"]), 2)
-        self.assertIn("top_advertisers", data["results"][0])
-        self.assertIn("timeline", data["results"][0])
 
 if __name__ == "__main__":
     unittest.main()

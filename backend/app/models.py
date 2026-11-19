@@ -7,18 +7,16 @@ class KeywordTrendRequest(BaseModel):
     geo: str = "KR"
 
 class TimelinePoint(BaseModel):
-    date: str  # YYYY-MM
+    date: str  # period key: YYYY-MM-DD (day, or the Monday of a week) or YYYY-MM (month)
     naver: Optional[float] = None
     google: Optional[float] = None
-    pinterest: Optional[float] = None
-    meta: Optional[float] = None
 
 class PlatformMetric(BaseModel):
     platform: str
     display_name: str
     icon: str
     relative_index: float  # 0 to 100
-    weekly_change_pct: float
+    change_pct: float  # last full period against the one before it
     status: str
     primary_metric_label: str
     primary_metric_value: str
@@ -32,8 +30,9 @@ class OmniTrendResponse(BaseModel):
     keyword: str
     updated_at: str
     overall_sentiment: str
+    unit: str = "month"  # day | week | month
     dominant_platform: Optional[str] = None
-    peak_month: Optional[str] = None
+    peak_period: Optional[str] = None
     summary_insight: str
     timeline: List[TimelinePoint]
     platforms: Dict[str, PlatformMetric]
@@ -101,31 +100,3 @@ class GoogleTrendsSearchResponse(BaseModel):
     timeline: List[GoogleTrendsDataPoint]
     summaries: Dict[str, GoogleKeywordSummary]
     is_live: bool
-
-# --- Meta Instagram Multi-Keyword Precision Models ---
-class MetaPrecisionSearchRequest(BaseModel):
-    keywords: List[str]                  # 1 to 5 keywords / brands
-    country: str = "KR"                  # "KR", "US", "JP", "ALL"
-    status: str = "ALL"                  # "ACTIVE", "ALL"
-    publisher_platform: str = "INSTAGRAM" # "INSTAGRAM", "ALL"
-
-class MetaAdvertiserPage(BaseModel):
-    page_name: str
-    ad_count: int
-
-class MetaKeywordAdSummary(BaseModel):
-    keyword: str
-    total_ads_found: int
-    activity_score: float
-    top_advertisers: List[MetaAdvertiserPage]
-    timeline: List[Dict[str, Any]]
-    sample_page_names: List[str]
-
-class MetaPrecisionSearchResponse(BaseModel):
-    keywords: List[str]
-    country: str
-    status: str
-    results: List[MetaKeywordAdSummary]
-    is_live: bool
-    notice: Optional[str] = None
-

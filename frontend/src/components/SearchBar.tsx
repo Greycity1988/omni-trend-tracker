@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Search, Loader2, Sparkles, TrendingUp } from 'lucide-react';
+import { TrendUnit } from '../types';
+import { UNIT_OPTIONS } from '../utils/trendUnit';
 
 interface SearchBarProps {
   onSearch: (keyword: string) => void;
   isLoading: boolean;
   currentKeyword: string;
+  unit: TrendUnit;
+  onUnitChange: (unit: TrendUnit) => void;
 }
 
 const POPULAR_KEYWORDS = [
@@ -17,7 +21,7 @@ const POPULAR_KEYWORDS = [
   '기능성베개',
 ];
 
-export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, currentKeyword }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, currentKeyword, unit, onUnitChange }) => {
   const [inputVal, setInputVal] = useState(currentKeyword);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,14 +42,40 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800 dark:bg-[#202126] dark:border-[#2e2f36] dark:text-[#A8FF1A] mb-2.5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-[#A8FF1A]" />
-            <span>CROSS-PLATFORM QUERY VOLUME & TREND INTELLIGENCE</span>
+            <span>NAVER × GOOGLE SEARCH TREND INTELLIGENCE</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             분석할 키워드를 입력하세요
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-[#AEAEAE] mt-1">
-            네이버 데이터랩, 구글 트렌드, 메타 인스타그램의 크로스 채널 검색 관심도를 한 번에 비교 분석합니다.
+            네이버 데이터랩과 구글 트렌드의 검색 관심도를 일·주·월 단위로 한 번에 비교 분석합니다.
           </p>
+        </div>
+
+        {/* Period unit: day / week / month (complete periods only) */}
+        <div className="flex flex-col items-start sm:items-end gap-1 flex-shrink-0">
+          <div role="radiogroup" aria-label="보기 단위" className="inline-flex p-1 rounded-full bg-slate-100 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#2e2f36]">
+            {UNIT_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                role="radio"
+                aria-checked={unit === opt.id}
+                onClick={() => unit !== opt.id && onUnitChange(opt.id)}
+                disabled={isLoading}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer disabled:cursor-wait ${
+                  unit === opt.id
+                    ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-black'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-[#AEAEAE] dark:hover:text-white'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-[#AEAEAE]">
+            {UNIT_OPTIONS.find((o) => o.id === unit)?.hint} · 끝난 기간만 집계
+          </span>
         </div>
       </div>
 

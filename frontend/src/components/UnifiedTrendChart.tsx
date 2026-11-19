@@ -8,7 +8,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { PlatformKey, PlatformMetric, TimelinePoint } from '../types';
+import { PlatformKey, PlatformMetric, TimelinePoint, TrendUnit } from '../types';
+import { UNIT_TEXT, describePeriod, formatPeriod } from '../utils/trendUnit';
 import { Layers } from 'lucide-react';
 import { useTheme } from '../utils/useTheme';
 
@@ -16,22 +17,16 @@ interface UnifiedTrendChartProps {
   timeline: TimelinePoint[];
   keyword: string;
   platforms: Partial<Record<PlatformKey, PlatformMetric>>;
+  unit: TrendUnit;
 }
 
-export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword, platforms }) => {
+export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword, platforms, unit }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [activeChannels, setActiveChannels] = useState<{
-    naver: boolean;
-    google: boolean;
-    pinterest: boolean;
-    meta: boolean;
-  }>({
+  const [activeChannels, setActiveChannels] = useState<Record<PlatformKey, boolean>>({
     naver: true,
     google: true,
-    pinterest: true,
-    meta: true,
   });
 
   const toggleChannel = (key: PlatformKey) => {
@@ -45,7 +40,8 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
 
   const formattedData = timeline.map((p) => ({
     ...p,
-    displayDate: p.date.length >= 7 ? p.date.substring(0, 7) : p.date,
+    displayDate: formatPeriod(p.date, unit),
+    fullDate: describePeriod(p.date, unit),
   }));
 
   return (
@@ -60,7 +56,7 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             </h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">
-            ‘{keyword}’ 키워드의 지난 12개월간 월별 관심도 (채널마다 자체 최고점을 100으로 환산)
+            ‘{keyword}’ 키워드의 {UNIT_TEXT[unit].span} {UNIT_TEXT[unit].each} 관심도 (채널마다 자체 최고점을 100으로 환산)
             {hasExample && ' · 점선은 예시 데이터'}
           </p>
         </div>
@@ -97,35 +93,6 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             </button>
           )}
 
-          {platforms.pinterest && (
-            <button
-              type="button"
-              onClick={() => toggleChannel('pinterest')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-                activeChannels.pinterest
-                  ? 'bg-[#E60023] text-white border-[#E60023] shadow-[0_0_10px_rgba(230,0,35,0.35)]'
-                  : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
-              <span>핀터{exampleTag('pinterest')}</span>
-            </button>
-          )}
-
-          {platforms.meta && (
-            <button
-              type="button"
-              onClick={() => toggleChannel('meta')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border ${
-                activeChannels.meta
-                  ? 'bg-[#E1306C] text-white border-[#E1306C] shadow-[0_0_10px_rgba(225,48,108,0.35)]'
-                  : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] opacity-60'
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-white shadow-sm" />
-              <span>인스타{exampleTag('meta')}</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -144,21 +111,12 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 <stop offset="5%" stopColor="#4285F4" stopOpacity={isDark ? 0.35 : 0.22} />
                 <stop offset="95%" stopColor="#4285F4" stopOpacity={0.0} />
               </linearGradient>
-              {/* Pinterest Red */}
-              <linearGradient id="colorPin" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#E60023" stopOpacity={isDark ? 0.3 : 0.2} />
-                <stop offset="95%" stopColor="#E60023" stopOpacity={0.0} />
-              </linearGradient>
-              {/* Instagram Magenta/Pink */}
-              <linearGradient id="colorMeta" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#E1306C" stopOpacity={isDark ? 0.3 : 0.2} />
-                <stop offset="95%" stopColor="#E1306C" stopOpacity={0.0} />
-              </linearGradient>
             </defs>
 
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? '#202126' : '#e2e8f0'} />
             <XAxis
               dataKey="displayDate"
+              minTickGap={16}
               tickLine={false}
               axisLine={false}
               tick={{ fill: isDark ? '#AEAEAE' : '#64748b', fontSize: 11 }}
@@ -185,15 +143,13 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 const labels: Record<string, string> = {
                   naver: '네이버 데이터랩',
                   google: '구글 트렌드',
-                  pinterest: '핀터레스트',
-                  meta: '인스타그램',
                 };
                 if (val === null || val === undefined) {
-                  return ['월말 마감 집계 중', labels[name] || name];
+                  return ['값 없음', labels[name] || name];
                 }
                 return [`${val} 점`, (labels[name] || name) + exampleTag(name as PlatformKey)];
               }}
-              labelFormatter={(label) => `기간: ${label}`}
+              labelFormatter={(_label, payload) => `기간: ${payload?.[0]?.payload?.fullDate ?? _label}`}
             />
 
             {shown('naver') && (
@@ -217,30 +173,6 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
                 fillOpacity={1}
                 fill="url(#colorGoogle)"
                 strokeDasharray={dash('google')}
-                connectNulls
-              />
-            )}
-            {shown('pinterest') && (
-              <Area
-                type="monotone"
-                dataKey="pinterest"
-                stroke="#E60023"
-                strokeWidth={2.8}
-                fillOpacity={1}
-                fill="url(#colorPin)"
-                strokeDasharray={dash('pinterest')}
-                connectNulls
-              />
-            )}
-            {shown('meta') && (
-              <Area
-                type="monotone"
-                dataKey="meta"
-                stroke="#E1306C"
-                strokeWidth={2.8}
-                fillOpacity={1}
-                fill="url(#colorMeta)"
-                strokeDasharray={dash('meta')}
                 connectNulls
               />
             )}

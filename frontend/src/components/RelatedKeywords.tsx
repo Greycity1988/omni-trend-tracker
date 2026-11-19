@@ -27,18 +27,6 @@ const PLATFORM_STYLES: Record<string, PlatformStyleConfig> = {
     hoverBorder: 'hover:border-[#4285F4]/60 dark:hover:border-[#4285F4]/60',
     hoverText: 'group-hover:text-[#4285F4] dark:group-hover:text-[#6ba3ff]',
   },
-  '인스타': {
-    badge: 'bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/30 dark:bg-[#E1306C]/15 dark:text-[#ff6b9d] dark:border-[#E1306C]/40',
-    dotColor: 'bg-[#E1306C]',
-    hoverBorder: 'hover:border-[#E1306C]/60 dark:hover:border-[#E1306C]/60',
-    hoverText: 'group-hover:text-[#E1306C] dark:group-hover:text-[#ff6b9d]',
-  },
-  '핀터': {
-    badge: 'bg-[#E60023]/10 text-[#E60023] border-[#E60023]/30 dark:bg-[#E60023]/15 dark:text-[#ff526b] dark:border-[#E60023]/40',
-    dotColor: 'bg-[#E60023]',
-    hoverBorder: 'hover:border-[#E60023]/60 dark:hover:border-[#E60023]/60',
-    hoverText: 'group-hover:text-[#E60023] dark:group-hover:text-[#ff526b]',
-  },
 };
 
 const DEFAULT_STYLE: PlatformStyleConfig = {

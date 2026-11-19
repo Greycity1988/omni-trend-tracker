@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-[#AEAEAE] tracking-tight font-medium hidden sm:block truncate">
-              네이버 데이터랩 • 구글 트렌드 • 메타 인스타그램 크로스 채널 인텔리전스
+              네이버 데이터랩 • 구글 트렌드 검색 관심도 비교
             </p>
           </div>
         </div>

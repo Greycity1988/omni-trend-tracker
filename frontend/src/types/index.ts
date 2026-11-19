@@ -1,12 +1,16 @@
-export type PlatformKey = 'naver' | 'google' | 'pinterest' | 'meta';
+export type PlatformKey = 'naver' | 'google';
 
-/** One point per month (date is YYYY-MM). null: platform is off or has no value that month. */
+/** Period of each point in the cross-channel view. */
+export type TrendUnit = 'day' | 'week' | 'month';
+
+/**
+ * One point per period. date is YYYY-MM-DD for a day or a week (its Monday) and YYYY-MM for a month.
+ * null: the platform has no value for that period.
+ */
 export interface TimelinePoint {
   date: string;
   naver: number | null;
   google: number | null;
-  pinterest: number | null;
-  meta: number | null;
 }
 
 export interface PlatformMetric {
@@ -14,7 +18,8 @@ export interface PlatformMetric {
   display_name: string;
   icon: string;
   relative_index: number;
-  weekly_change_pct: number;
+  /** Last full period against the one before it, in percent */
+  change_pct: number;
   status: 'rising' | 'stable' | 'cooling';
   primary_metric_label: string;
   primary_metric_value: string;
@@ -39,8 +44,9 @@ export interface OmniTrendResponse {
   updated_at: string;
   /** Worked out from platforms with live data only: '상승' | '하락' | '채널별 상이' | '판단 불가' */
   overall_sentiment: string;
+  unit: TrendUnit;
   dominant_platform: string | null;
-  peak_month: string | null;
+  peak_period: string | null;
   summary_insight: string;
   timeline: TimelinePoint[];
   /** Only the platforms the backend has enabled */
@@ -81,8 +87,6 @@ export interface DataLabSearchResponse {
 export interface ApiKeysStatus {
   naver: boolean;
   google: boolean;
-  meta: boolean;
-  pinterest: boolean;
 }
 
 // ── Google Trends Precision Studio Types ──
@@ -110,28 +114,3 @@ export interface GoogleTrendsSearchResponse {
   summaries: Record<string, GoogleKeywordSummary>;
   is_live: boolean;
 }
-
-// ── Meta Instagram Precision Studio Types ──
-export interface MetaAdvertiserPage {
-  page_name: string;
-  ad_count: number;
-}
-
-export interface MetaKeywordAdSummary {
-  keyword: string;
-  total_ads_found: number;
-  activity_score: number;
-  top_advertisers: MetaAdvertiserPage[];
-  timeline: { period: string; count: number }[];
-  sample_page_names: string[];
-}
-
-export interface MetaPrecisionSearchResponse {
-  keywords: string[];
-  country: string;
-  status: string;
-  results: MetaKeywordAdSummary[];
-  is_live: boolean;
-  notice?: string;
-}
-

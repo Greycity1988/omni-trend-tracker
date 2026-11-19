@@ -5,6 +5,7 @@ import urllib.request
 from typing import Dict, Any, List, Optional
 from ..config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
+from .periods import Window, bucket, change_pct, period_key, period_starts, window
 
 DISPLAY_NAME = "네이버 데이터랩 (Naver DataLab)"
 
@@ -30,44 +31,45 @@ def _request_datalab_full(url: str, headers: Dict[str, str], body: bytes) -> Opt
         return json.loads(response.read().decode("utf-8")).get("results", [])
 
 
-def _live_result(keyword: str, data_points: List[Dict[str, Any]]) -> Dict[str, Any]:
-    timeline = [{"date": p["period"], "value": round(float(p["ratio"]), 1)} for p in data_points]
-    latest_score = timeline[-1]["value"]
-    prev_score = timeline[-2]["value"] if len(timeline) >= 2 else latest_score
-    change = round(((latest_score - prev_score) / max(prev_score, 1)) * 100, 1)
+LAST_PERIOD = {"day": "어제", "week": "지난주", "month": "지난달"}
+
+
+def _result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live: bool) -> Dict[str, Any]:
+    latest = timeline[-1]["value"] if timeline else 0.0
+    change = change_pct([p["value"] for p in timeline])
     return {
         "platform": "naver",
         "display_name": DISPLAY_NAME,
         "icon": "🟩",
-        "relative_index": latest_score,
-        "weekly_change_pct": change,
+        "relative_index": latest,
+        "change_pct": change,
         "status": "rising" if change > 0 else "cooling",
-        "primary_metric_label": "네이버 검색 지수 (지난달)",
-        "primary_metric_value": f"{int(latest_score)}/100",
-        "secondary_metric_label": "전월 대비",
-        "secondary_metric_value": f"{change:+}%",
+        "primary_metric_label": f"네이버 검색 지수 ({LAST_PERIOD[w.unit]})",
+        "primary_metric_value": f"{int(latest)}/100",
+        "secondary_metric_label": w.change_label if live else EXAMPLE_METRIC_LABEL,
+        "secondary_metric_value": f"{change:+}%" if live else EXAMPLE_METRIC_VALUE,
         "top_related_keywords": _suggested_keywords(keyword),
         "related_keywords_live": False,
         "timeline": timeline,
-        "is_live": True
+        "is_live": live,
     }
 
 
-def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
+def fetch_naver_trend(keyword: str, unit: str = "month") -> Dict[str, Any]:
+    w = window(unit)
     if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET:
-        first_of_month = datetime.date.today().replace(day=1)
-        start_date = first_of_month.replace(year=first_of_month.year - 1).strftime("%Y-%m-%d")
-        end_date = (first_of_month - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-
         body = {
-            "startDate": start_date,
-            "endDate": end_date,
-            "timeUnit": "month",
+            "startDate": w.start.isoformat(),
+            "endDate": w.end.isoformat(),
+            "timeUnit": w.naver_time_unit,
             "keywordGroups": [
                 {"groupName": keyword, "keywords": [keyword]}
             ]
         }
         encoded_body = json.dumps(body).encode("utf-8")
+
+        def live(points):
+            return _result(keyword, w, bucket([{"date": p["period"], "value": float(p["ratio"])} for p in points], w), True)
 
         # 1. Try New NAVER API HUB (Naver Cloud Platform)
         try:
@@ -80,7 +82,7 @@ def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
                 encoded_body,
             )
             if data_points:
-                return _live_result(keyword, data_points)
+                return live(data_points)
         except Exception as e:
             print(f"[NAVER API HUB error, trying legacy developers API] {type(e).__name__} {getattr(e, 'code', '')}")
 
@@ -95,41 +97,19 @@ def fetch_naver_trend(keyword: str) -> Dict[str, Any]:
                 encoded_body,
             )
             if data_points:
-                return _live_result(keyword, data_points)
+                return live(data_points)
         except Exception as e:
             print(f"[Naver Legacy API error] {type(e).__name__} {getattr(e, 'code', '')}")
 
-    # Example fallback data
-    today = datetime.date.today()
-    timeline = []
-    rng = example_rng(keyword, "naver")
+    # Example data: one point per period, stable for the same keyword
+    rng = example_rng(keyword, f"naver_{unit}")
     base_val = 50 + rng.randrange(40)
-    for i in range(12, -1, -1):
-        dt = today - datetime.timedelta(days=i * 30)
-        variation = math.cos((12 - i) * 0.45) * 18 + rng.uniform(-3, 5)
-        val = max(10, min(100, round(base_val + variation, 1)))
-        timeline.append({"date": dt.strftime("%Y-%m-%d"), "value": val})
-
-    latest_val = timeline[-1]["value"]
-    prev_val = timeline[-2]["value"]
-    weekly_change = round(((latest_val - prev_val) / max(prev_val, 1)) * 100, 1)
-
-    return {
-        "platform": "naver",
-        "display_name": DISPLAY_NAME,
-        "icon": "🟩",
-        "relative_index": latest_val,
-        "weekly_change_pct": weekly_change,
-        "status": "rising" if weekly_change > 0 else "cooling",
-        "primary_metric_label": "네이버 검색 지수",
-        "primary_metric_value": f"{int(latest_val)}/100",
-        "secondary_metric_label": EXAMPLE_METRIC_LABEL,
-        "secondary_metric_value": EXAMPLE_METRIC_VALUE,
-        "top_related_keywords": _suggested_keywords(keyword),
-        "related_keywords_live": False,
-        "timeline": timeline,
-        "is_live": False
-    }
+    starts = period_starts(w)
+    timeline = []
+    for i, d in enumerate(starts):
+        variation = math.cos(i * 5.4 / max(len(starts), 1)) * 18 + rng.uniform(-3, 5)
+        timeline.append({"date": period_key(unit, d.isoformat()), "value": max(10, min(100, round(base_val + variation, 1)))})
+    return _result(keyword, w, timeline, False)
 
 
 def search_naver_datalab_custom(

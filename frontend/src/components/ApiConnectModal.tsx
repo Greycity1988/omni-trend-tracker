@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ExternalLink,
   Terminal,
-  Instagram,
 } from 'lucide-react';
 import { ApiKeysStatus } from '../types';
 
@@ -37,7 +36,7 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
                 플랫폼 API 연동 및 실제 데이터 가이드
               </h3>
               <p className="text-xs text-slate-500 dark:text-[#AEAEAE]">
-                네이버·구글·인스타그램·핀터레스트 공식 API 실시간 연동 현황
+                네이버 데이터랩 · 구글 트렌드 연동 현황
               </p>
             </div>
           </div>
@@ -52,15 +51,23 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
           {/* Status Overview Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {/* Naver */}
-            <div className="p-3.5 rounded-2xl border border-emerald-300 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-950/20 space-y-1">
+            <div className={`p-3.5 rounded-2xl border space-y-1 ${
+              status?.naver
+                ? 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-950/20'
+                : 'border-amber-300 bg-amber-50/70 dark:border-amber-500/30 dark:bg-amber-950/20'
+            }`}>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs">네이버 데이터랩</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#A8FF1A]" />
+                {status?.naver ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#A8FF1A]" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                )}
               </div>
-              <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-[#A8FF1A] block">
-                {status?.naver ? '● 실시간 연동 중' : '미연동'}
+              <span className={`text-[11px] font-mono font-bold block ${status?.naver ? 'text-emerald-700 dark:text-[#A8FF1A]' : 'text-amber-700 dark:text-amber-400'}`}>
+                {status?.naver ? '● 실시간 연동 중' : '키 없음 · 예시 데이터'}
               </span>
             </div>
 
@@ -75,113 +82,33 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
               </span>
             </div>
 
-            {/* Instagram */}
-            <div className={`p-3.5 rounded-2xl border space-y-1 ${
-              status?.meta
-                ? 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-950/20'
-                : 'border-amber-300 bg-amber-50/70 dark:border-amber-500/30 dark:bg-amber-950/20'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs">인스타그램</span>
-                {status?.meta ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                )}
-              </div>
-              <span className="text-[11px] font-mono font-bold block">
-                {status?.meta ? '● 실시간 연동 중' : '예시 미리보기'}
-              </span>
-            </div>
-
-            {/* Pinterest */}
-            <div className={`p-3.5 rounded-2xl border space-y-1 ${
-              status?.pinterest
-                ? 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-950/20'
-                : 'border-amber-300 bg-amber-50/70 dark:border-amber-500/30 dark:bg-amber-950/20'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs">핀터레스트</span>
-                {status?.pinterest ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                )}
-              </div>
-              <span className="text-[11px] font-mono font-bold block">
-                {status?.pinterest ? '● 실시간 연동 중' : '예시 미리보기'}
-              </span>
-            </div>
           </div>
 
-          {/* Guide 1: Instagram Real Token Setup */}
+          {/* Guide: Naver DataLab keys */}
           <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 dark:border-[#26272c] dark:bg-[#1a1b1f] space-y-3">
             <div className="flex items-center space-x-2">
-              <Instagram className="w-4 h-4 text-pink-600" />
+              <KeyRound className="w-4 h-4 text-[#03C75A]" />
               <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                인스타그램 (Meta Graph API) 실시간 연동 가이드
+                네이버 데이터랩 키 연결하기 (무료)
               </h4>
             </div>
             <p className="text-xs text-slate-600 dark:text-[#AEAEAE] leading-relaxed">
-              Meta Graph API를 연동하면 Meta 광고 라이브러리에서 키워드와 관련된 국내 인스타그램 광고를 실시간으로 모아 광고 지수와 주요 광고주를 보여 줍니다.
+              구글 트렌드는 키 없이 실제 데이터를 받습니다. 네이버는 키를 넣어야 실제 데이터로 바뀌고, 키가 없으면 예시 데이터로 표시됩니다.
             </p>
             <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700 dark:text-[#AEAEAE]">
               <li>
                 <a
-                  href="https://developers.facebook.com"
+                  href="https://developers.naver.com/apps/#/register"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold text-emerald-600 dark:text-[#A8FF1A] hover:underline inline-flex items-center gap-1"
+                  className="text-emerald-700 dark:text-[#A8FF1A] font-semibold hover:underline inline-flex items-center gap-1"
                 >
-                  Meta for Developers <ExternalLink className="w-3 h-3" />
+                  네이버 개발자 센터 <ExternalLink className="w-3 h-3" />
                 </a>
-                에서 앱 생성 (유형: ‘비즈니스’ 또는 ‘소비자’)
+                에서 애플리케이션을 등록하고 사용 API로 ‘데이터랩(검색어 트렌드)’을 고릅니다.
               </li>
-              <li>인스타그램 프로페셔널(비즈니스/크리에이터 무료 전환) 계정과 페이스북 페이지를 연결합니다.</li>
-              <li>
-                <a
-                  href="https://developers.facebook.com/tools/explorer/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-emerald-600 dark:text-[#A8FF1A] hover:underline inline-flex items-center gap-1"
-                >
-                  그래프 API 탐색기 <ExternalLink className="w-3 h-3" />
-                </a>
-                에서 <code className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-[#26272c] font-mono">instagram_basic</code>, <code className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-[#26272c] font-mono">pages_show_list</code> 권한을 체크하고 토큰을 생성합니다.
-              </li>
-              <li>
-                발급받은 토큰을 로컬 <code className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-[#26272c] font-mono">.env</code> 파일의 <code className="font-mono text-emerald-700 dark:text-[#A8FF1A]">META_ACCESS_TOKEN</code>에 넣고 저장하면 즉시 활성화됩니다!
-              </li>
-            </ol>
-          </div>
-
-          {/* Guide 2: Pinterest Real Token Setup */}
-          <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 dark:border-[#26272c] dark:bg-[#1a1b1f] space-y-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-base">📌</span>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                핀터레스트 트렌드 (Pinterest API v5) 실시간 연동 가이드
-              </h4>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-[#AEAEAE] leading-relaxed">
-              Pinterest Developers에서 v5 Trends API 액세스 토큰을 발급받아 연동할 수 있습니다.
-            </p>
-            <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700 dark:text-[#AEAEAE]">
-              <li>
-                <a
-                  href="https://developers.pinterest.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-emerald-600 dark:text-[#A8FF1A] hover:underline inline-flex items-center gap-1"
-                >
-                  Pinterest Developers Portal <ExternalLink className="w-3 h-3" />
-                </a>
-                에서 앱 생성
-              </li>
-              <li>OAuth 2.0 또는 장기 액세스 토큰(Access Token) 발급</li>
-              <li>
-                로컬 <code className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-[#26272c] font-mono">.env</code>의 <code className="font-mono text-emerald-700 dark:text-[#A8FF1A]">PINTEREST_ACCESS_TOKEN</code>에 붙여넣기 후 저장
-              </li>
+              <li>발급된 Client ID와 Client Secret을 <code className="font-mono">backend/.env</code>의 <code className="font-mono">NAVER_CLIENT_ID</code>, <code className="font-mono">NAVER_CLIENT_SECRET</code>에 넣습니다.</li>
+              <li>백엔드 서버를 다시 켜면 적용됩니다. 하루 1,000회까지 무료입니다.</li>
             </ol>
           </div>
 
@@ -190,10 +117,10 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
             <Terminal className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
               <span className="font-bold text-slate-900 dark:text-white">
-                Mac에서 바로 .env 파일 편집하기
+                키 파일 만들기
               </span>
               <p className="text-slate-600 dark:text-[#AEAEAE] font-mono text-[11px]">
-                터미널에서 <code className="text-emerald-700 dark:text-[#A8FF1A]">open ~/Downloads/omni-trend-tracker/backend/.env</code> 명령어를 입력하면 텍스트 편집기가 열립니다.
+                <code className="text-emerald-700 dark:text-[#A8FF1A]">cd backend && cp .env.example .env</code> 로 만든 뒤 편집기로 열어 키를 넣습니다. 이 파일은 GitHub에 올리지 마세요.
               </p>
             </div>
           </div>

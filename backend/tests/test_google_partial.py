@@ -1,3 +1,4 @@
+import datetime
 import unittest
 from unittest import mock
 
@@ -5,7 +6,8 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.services.google import change_pct, drop_partial_rows
+from app.services.google import drop_partial_rows, fetch_google_trend
+from app.services.periods import change_pct, window
 
 
 def _frame(rows):
@@ -16,7 +18,7 @@ def _frame(rows):
 
 
 class GooglePartialPeriodTests(unittest.TestCase):
-    """The in-progress week must not count as a drop (audit 2026-11-16, item 3)."""
+    """The in-progress period must not count as a drop (audit 2026-11-16, item 3)."""
 
     def test_drop_partial_rows_removes_unfinished_period(self):
         df = _frame([("2026-11-02", 80, False), ("2026-11-09", 80, False), ("2026-11-16", 20, True)])
@@ -31,19 +33,24 @@ class GooglePartialPeriodTests(unittest.TestCase):
         self.assertEqual(change_pct([0, 3]), 300.0)
         self.assertEqual(change_pct([70]), 0.0)
 
-    def test_overview_ignores_partial_week(self):
-        df = _frame([("2026-11-02", 70, False), ("2026-11-09", 77, False), ("2026-11-16", 10, True)])
+    def test_weekly_overview_uses_full_weeks_in_the_window(self):
+        w = window("week")
+        last_sunday = w.google_end - datetime.timedelta(days=6)  # Google weeks start on Sunday
+        rows = [(str(last_sunday - datetime.timedelta(days=7)), 70, False),
+                (str(last_sunday), 77, False),
+                (str(last_sunday + datetime.timedelta(days=7)), 10, True)]
         with mock.patch("pytrends.request.TrendReq") as req:
             inst = req.return_value
-            inst.interest_over_time.return_value = df
+            inst.interest_over_time.return_value = _frame(rows)
             inst.related_queries.return_value = {}
-            from app.services.google import fetch_google_trend
-
-            data = fetch_google_trend("선크림")
+            data = fetch_google_trend("선크림", "week")
+            self.assertEqual(inst.build_payload.call_args.kwargs["timeframe"], w.google_timeframe)
         self.assertTrue(data["is_live"])
-        self.assertEqual(data["weekly_change_pct"], 10.0)
+        self.assertEqual(data["change_pct"], 10.0)
         self.assertEqual(data["relative_index"], 77)
-        self.assertEqual([p["date"] for p in data["timeline"]], ["2026-11-02", "2026-11-09"])
+        # filed under the Monday after each Sunday
+        self.assertEqual(data["timeline"][-1]["date"], str(last_sunday + datetime.timedelta(days=1)))
+        self.assertEqual(data["secondary_metric_label"], "전주 대비")
 
     def test_studio_search_ignores_partial_week(self):
         df = _frame([("2026-11-02", 40, False), ("2026-11-09", 50, False), ("2026-11-16", 5, True)])

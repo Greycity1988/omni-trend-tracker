@@ -24,18 +24,6 @@ const BRAND_THEME: Record<string, {
     pillText: 'group-hover:text-[#4285F4]',
     dotColor: 'bg-[#4285F4]',
   },
-  meta: {
-    color: '#E1306C',
-    pillBorder: 'hover:border-[#E1306C] hover:text-[#E1306C]',
-    pillText: 'group-hover:text-[#E1306C]',
-    dotColor: 'bg-[#E1306C]',
-  },
-  pinterest: {
-    color: '#E60023',
-    pillBorder: 'hover:border-[#E60023] hover:text-[#E60023]',
-    pillText: 'group-hover:text-[#E60023]',
-    dotColor: 'bg-[#E60023]',
-  },
 };
 
 export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
@@ -56,7 +44,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {platformList.map((p) => {
-          const isRising = p.weekly_change_pct >= 0;
+          const isRising = p.change_pct >= 0;
           const brand = BRAND_THEME[p.platform] || {
             color: '#64748b',
             pillBorder: 'hover:border-slate-400',
@@ -106,7 +94,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   }`}
                 >
                   {isRising ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5 text-white" />}
-                  <span>{p.weekly_change_pct > 0 ? `+${p.weekly_change_pct}%` : `${p.weekly_change_pct}%`}</span>
+                  <span>{p.change_pct > 0 ? `+${p.change_pct}%` : `${p.change_pct}%`}</span>
                 </div>
               </div>
 
