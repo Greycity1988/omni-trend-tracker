@@ -1,6 +1,8 @@
 import asyncio
 import datetime
 import os
+import threading
+from contextlib import asynccontextmanager
 import time
 import unicodedata
 from collections import OrderedDict, defaultdict, deque
@@ -30,7 +32,17 @@ from .services.google import fetch_google_trend, search_google_trends_custom
 from .services.pinterest import fetch_pinterest_trend
 from .services.meta import fetch_meta_trend, search_meta_precision_custom
 
+@asynccontextmanager
+async def lifespan(_app):
+    # Renew the Meta token in the background when it is close to expiring (needs META_APP_ID and
+    # META_APP_SECRET). Off the startup path so a slow Graph API never delays the server.
+    from .services.meta import check_and_auto_renew_token
+    threading.Thread(target=check_and_auto_renew_token, daemon=True).start()
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Omni Trend Tracker API",
     description="Cross-platform Keyword & Trend Intelligence (Naver DataLab, Google Trends, Pinterest, Meta)",
     version="1.0.0"
@@ -206,10 +218,13 @@ async def get_omni_trend(keyword: str, request: Request):
     )
 
     # If core live platforms had a temporary network glitch, use short 5s TTL instead of 600s
+    # Naver only counts when its keys are set: without keys it is always example data, and
+    # treating that as a glitch would turn the cache off and re-query Google on every search.
+    retry_soon = {"google"} | ({"naver"} if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET else set())
     has_fallback = any(
         not res.get("is_live", False)
         for name, res in results.items()
-        if name in ("naver", "google")
+        if name in retry_soon
     )
     ttl = 5 if has_fallback else CACHE_TTL_SECONDS
     _cache[keyword] = (time.monotonic() + ttl, response)
@@ -219,9 +234,26 @@ async def get_omni_trend(keyword: str, request: Request):
     return response
 
 
+def check_studio_request(request: Request, words: list) -> None:
+    """Studio searches call the external APIs every time (no cache), so they share the lookup limit."""
+    if len(words) > 30:
+        raise HTTPException(status_code=400, detail="키워드가 너무 많습니다.")
+    for word in words:
+        if not isinstance(word, str) or len(word) > MAX_KEYWORD_LENGTH:
+            raise HTTPException(status_code=400, detail=f"키워드는 {MAX_KEYWORD_LENGTH}자 이하로 입력해주세요.")
+    check_rate_limit(request.client.host if request.client else "unknown")
+
+
+def studio_error(label: str, err: Exception) -> HTTPException:
+    # The detail goes to the browser: never include the exception text (it can carry request URLs).
+    print(f"[{label} error] {type(err).__name__}")
+    return HTTPException(status_code=500, detail=f"{label} 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+
 @app.post("/api/datalab/search", response_model=DataLabSearchResponse)
-async def datalab_search(req: DataLabSearchRequest):
+async def datalab_search(req: DataLabSearchRequest, request: Request):
     """Naver DataLab multi-topic search query identical to datalab.naver.com."""
+    check_studio_request(request, [g.group_name for g in req.keyword_groups] + [k for g in req.keyword_groups for k in g.keywords])
     try:
         res = search_naver_datalab_custom(
             start_date=req.start_date,
@@ -236,12 +268,13 @@ async def datalab_search(req: DataLabSearchRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"데이터랩 조회 오류: {str(e)}")
+        raise studio_error("데이터랩", e)
 
 
 @app.post("/api/google/search", response_model=GoogleTrendsSearchResponse)
-async def google_trends_search(req: GoogleTrendsSearchRequest):
+async def google_trends_search(req: GoogleTrendsSearchRequest, request: Request):
     """Google Trends multi-keyword comparison query (1~5 keywords)."""
+    check_studio_request(request, req.keywords)
     try:
         res = search_google_trends_custom(
             keywords=req.keywords,
@@ -253,12 +286,13 @@ async def google_trends_search(req: GoogleTrendsSearchRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"구글 트렌드 조회 오류: {str(e)}")
+        raise studio_error("구글 트렌드", e)
 
 
 @app.post("/api/meta/search", response_model=MetaPrecisionSearchResponse)
-async def meta_precision_search(req: MetaPrecisionSearchRequest):
+async def meta_precision_search(req: MetaPrecisionSearchRequest, request: Request):
     """Meta Instagram Ads Archive multi-keyword & brand intelligence search."""
+    check_studio_request(request, req.keywords)
     try:
         res = search_meta_precision_custom(
             keywords=req.keywords,
@@ -270,21 +304,7 @@ async def meta_precision_search(req: MetaPrecisionSearchRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"인스타그램 광고 조회 오류: {str(e)}")
-
-
-@app.post("/api/meta/refresh-token")
-async def meta_refresh_token():
-    """Exchanges current Meta access token for a new 60-day token using App ID & App Secret."""
-    from .services.meta import refresh_meta_long_lived_token
-    res = refresh_meta_long_lived_token()
-    if not res:
-        raise HTTPException(
-            status_code=400,
-            detail="토큰 연장 실패: META_APP_ID 및 META_APP_SECRET이 .env에 등록되어 있는지 확인해주세요."
-        )
-    return res
-
+        raise studio_error("인스타그램 광고", e)
 
 
 @app.get("/api/keys/status")

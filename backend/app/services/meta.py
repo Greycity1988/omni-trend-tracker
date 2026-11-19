@@ -77,7 +77,8 @@ def refresh_meta_long_lived_token() -> Optional[Dict[str, Any]]:
     from .. import config
     app_id = config.META_APP_ID.strip() if hasattr(config, "META_APP_ID") else ""
     app_secret = config.META_APP_SECRET.strip() if hasattr(config, "META_APP_SECRET") else ""
-    current_token = config.META_ACCESS_TOKEN.strip() if hasattr(config, "META_ACCESS_TOKEN") else ""
+    # This module's copy is the one every Meta call reads (tests replace it too).
+    current_token = (globals().get("META_ACCESS_TOKEN") or "").strip()
 
     if not app_id or not app_secret or not current_token:
         return None
@@ -97,6 +98,7 @@ def refresh_meta_long_lived_token() -> Optional[Dict[str, Any]]:
             expires_in = data.get("expires_in", 5184000)
             if new_token:
                 config.META_ACCESS_TOKEN = new_token
+                globals()["META_ACCESS_TOKEN"] = new_token  # so the retry and later calls use it
                 update_env_meta_token(new_token)
                 days = expires_in // 86400
                 print(f"[Meta Auto-Renewal] Successfully renewed 60-day token! Valid for {days} days.")
@@ -108,7 +110,8 @@ def refresh_meta_long_lived_token() -> Optional[Dict[str, Any]]:
         else:
             print(f"[Meta Auto-Renewal] Exchange failed ({r.status_code}): {r.text}")
     except Exception as e:
-        print(f"[Meta Auto-Renewal error] {e}")
+        # Type only: the request URL carries the app secret and token.
+        print(f"[Meta Auto-Renewal error] {type(e).__name__}")
     return None
 
 
@@ -120,7 +123,7 @@ def check_and_auto_renew_token(days_threshold: int = 7) -> bool:
     from .. import config
     app_id = getattr(config, "META_APP_ID", "")
     app_secret = getattr(config, "META_APP_SECRET", "")
-    token = getattr(config, "META_ACCESS_TOKEN", "")
+    token = globals().get("META_ACCESS_TOKEN") or ""
 
     if not app_id or not app_secret or not token:
         return False
@@ -141,7 +144,8 @@ def check_and_auto_renew_token(days_threshold: int = 7) -> bool:
                 res = refresh_meta_long_lived_token()
                 return bool(res and res.get("success"))
     except Exception as e:
-        print(f"[check_and_auto_renew_token error] {e}")
+        # Type only: the request URL carries the token.
+        print(f"[check_and_auto_renew_token error] {type(e).__name__}")
     return False
 
 
@@ -490,13 +494,8 @@ def search_meta_precision_custom(
             simulated_ads = 15 + rng.randrange(60)
             score = min(100.0, max(20.0, round(math.log10(simulated_ads + 1) * 32 + rng.uniform(-5, 5), 1)))
 
-            brand_samples = [
-                f"{kw} 공식 스토어",
-                f"{kw} 프리미엄 Lab",
-                f"{kw} 코리아",
-                f"올리브영 {kw}",
-                f"트렌디 {kw} 마켓",
-            ]
+            # Placeholder names only: example data must never look like a real store or retailer.
+            brand_samples = [f"예시 광고주 {c}" for c in "ABCDE"]
             top_advertisers = [
                 {"page_name": brand_samples[0], "ad_count": int(simulated_ads * 0.35)},
                 {"page_name": brand_samples[1], "ad_count": int(simulated_ads * 0.25)},
@@ -523,7 +522,7 @@ def search_meta_precision_custom(
             })
 
     if not has_live_success and not notice:
-        notice = "메타 광고 아카이브 API 키가 등록되지 않았거나 권한 확인 중입니다. 현재는 정밀 시뮬레이션 데이터를 제공합니다."
+        notice = "메타 광고 아카이브 API 키가 등록되지 않았거나 권한 확인 중입니다. 아래는 화면 구성을 보여 주는 예시 데이터이며 실제 광고 수가 아닙니다."
 
     return {
         "keywords": clean_kws,

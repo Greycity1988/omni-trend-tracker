@@ -127,6 +127,23 @@ class ApiGuardTests(unittest.TestCase):
         self.client.get("/api/trend/선크림")
         self.assertEqual(self.fetchers["naver"].call_count, 1)
 
+    def _cache_ttl_with_example_naver(self, naver_keys):
+        LIVE.discard("naver")
+        self.addCleanup(LIVE.add, "naver")
+        self.enable("naver", "google")
+        with mock.patch.object(main, "NAVER_CLIENT_ID", "id" if naver_keys else ""), \
+                mock.patch.object(main, "NAVER_CLIENT_SECRET", "secret" if naver_keys else ""), \
+                mock.patch.object(main.time, "monotonic", return_value=1000.0):
+            self.client.get("/api/trend/ttl")
+        return main._cache["ttl"][0] - 1000.0
+
+    def test_keyless_naver_does_not_turn_the_cache_off(self):
+        # Without keys Naver is always example data; that is not a glitch to retry in 5 seconds.
+        self.assertEqual(self._cache_ttl_with_example_naver(naver_keys=False), main.CACHE_TTL_SECONDS)
+
+    def test_configured_naver_that_failed_is_retried_soon(self):
+        self.assertEqual(self._cache_ttl_with_example_naver(naver_keys=True), 5)
+
     def test_uncached_lookups_are_rate_limited(self):
         for i in range(main.RATE_LIMIT_LOOKUPS):
             self.assertEqual(self.client.get(f"/api/trend/kw{i}").status_code, 200)
