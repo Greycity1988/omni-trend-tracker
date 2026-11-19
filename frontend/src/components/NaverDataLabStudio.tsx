@@ -24,6 +24,7 @@ import {
   DataLabSearchResponse,
 } from '../types';
 import { useTheme } from '../utils/useTheme';
+import { EARLIEST_DATE, yesterdayIso } from '../utils/trendUnit';
 
 interface NaverDataLabStudioProps {
   onSearchDataLab: (payload: {
@@ -81,10 +82,18 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
   const [timeUnit, setTimeUnit] = useState<'date' | 'week' | 'month'>('month');
 
   // Dates
-  const today = new Date().toISOString().split('T')[0];
-  const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const [startDate, setStartDate] = useState<string>(oneYearAgo);
-  const [endDate, setEndDate] = useState<string>(today);
+  // Local dates (toISOString is UTC and is a day behind in Korea before 9 a.m.). The range ends
+  // yesterday: today's numbers are not complete yet.
+  const yesterday = yesterdayIso();
+  const monthsBefore = (months: number) => {
+    const [y, m, d] = yesterday.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setMonth(date.getMonth() - months);
+    date.setDate(date.getDate() + 1);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+  const [startDate, setStartDate] = useState<string>(() => monthsBefore(12));
+  const [endDate, setEndDate] = useState<string>(yesterday);
 
   // Filters
   const [device, setDevice] = useState<'all' | 'mo' | 'pc'>('all');
@@ -99,29 +108,21 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
   // Handle Preset Changes
   const applyPreset = (preset: '1m' | '3m' | '1y' | 'custom') => {
     setPeriodPreset(preset);
-    const now = new Date();
-    const endStr = now.toISOString().split('T')[0];
-    let startStr = oneYearAgo;
+    let startStr = monthsBefore(12);
 
     if (preset === '1m') {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 1);
-      startStr = d.toISOString().split('T')[0];
+      startStr = monthsBefore(1);
       setTimeUnit('date');
     } else if (preset === '3m') {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 3);
-      startStr = d.toISOString().split('T')[0];
+      startStr = monthsBefore(3);
       setTimeUnit('week');
     } else if (preset === '1y') {
-      const d = new Date();
-      d.setFullYear(d.getFullYear() - 1);
-      startStr = d.toISOString().split('T')[0];
+      startStr = monthsBefore(12);
       setTimeUnit('month');
     }
 
     setStartDate(startStr);
-    setEndDate(endStr);
+    setEndDate(yesterday);
   };
 
   // Group Input Handlers
@@ -371,6 +372,8 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
                 <input
                   type="date"
                   value={startDate}
+                  min={EARLIEST_DATE}
+                  max={yesterday}
                   onChange={(e) => {
                     setStartDate(e.target.value);
                     setPeriodPreset('custom');
@@ -381,6 +384,8 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
                 <input
                   type="date"
                   value={endDate}
+                  min={EARLIEST_DATE}
+                  max={yesterday}
                   onChange={(e) => {
                     setEndDate(e.target.value);
                     setPeriodPreset('custom');

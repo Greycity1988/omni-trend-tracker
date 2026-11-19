@@ -1,11 +1,9 @@
 import asyncio
 import datetime
-from typing import Optional
-import os
 import time
 import unicodedata
 from collections import OrderedDict, defaultdict, deque
-from typing import Literal
+from typing import Literal, Optional
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .config import (
@@ -246,8 +244,10 @@ def studio_error(label: str, err: Exception) -> HTTPException:
     return HTTPException(status_code=500, detail=f"{label} 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
 
+# Studio handlers are plain functions on purpose: the Naver and Google calls block, and FastAPI runs
+# sync handlers in its thread pool instead of on the event loop that serves every other request.
 @app.post("/api/datalab/search", response_model=DataLabSearchResponse)
-async def datalab_search(req: DataLabSearchRequest, request: Request):
+def datalab_search(req: DataLabSearchRequest, request: Request):
     """Naver DataLab multi-topic search query identical to datalab.naver.com."""
     check_studio_request(request, [g.group_name for g in req.keyword_groups] + [k for g in req.keyword_groups for k in g.keywords])
     try:
@@ -268,7 +268,7 @@ async def datalab_search(req: DataLabSearchRequest, request: Request):
 
 
 @app.post("/api/google/search", response_model=GoogleTrendsSearchResponse)
-async def google_trends_search(req: GoogleTrendsSearchRequest, request: Request):
+def google_trends_search(req: GoogleTrendsSearchRequest, request: Request):
     """Google Trends multi-keyword comparison query (1~5 keywords)."""
     check_studio_request(request, req.keywords)
     try:

@@ -33,6 +33,28 @@ class StudioGuardTests(unittest.TestCase):
         self.assertEqual(res.status_code, 500)
         self.assertNotIn("SECRET123", res.text)
 
+    def test_google_studio_accepts_only_offered_options(self):
+        for bad in ({"timeframe": "all"}, {"geo": "../x"}, {"gprop": "images&x=1"}):
+            res = self.client.post("/api/google/search", json={"keywords": ["a"], **bad})
+            self.assertEqual(res.status_code, 422, bad)
+
+    def test_studio_handlers_do_not_block_the_event_loop(self):
+        # Sync handlers run in FastAPI's thread pool; an async one would stall every other request.
+        import inspect
+        self.assertFalse(inspect.iscoroutinefunction(main.google_trends_search))
+        self.assertFalse(inspect.iscoroutinefunction(main.datalab_search))
+
+    def test_hourly_google_points_keep_their_hour(self):
+        import pandas as pd
+        idx = pd.to_datetime(["2026-11-18 09:00", "2026-11-18 10:00", "2026-11-18 11:00"])
+        df = pd.DataFrame({"a": [10, 20, 30], "isPartial": [False, False, False]}, index=idx)
+        with mock.patch("pytrends.request.TrendReq") as req:
+            req.return_value.interest_over_time.return_value = df
+            req.return_value.related_queries.return_value = {}
+            body = self.client.post("/api/google/search", json={"keywords": ["a"], "timeframe": "now 1-d"}).json()
+        self.assertEqual([p["period"] for p in body["timeline"]],
+                         ["2026-11-18 09:00", "2026-11-18 10:00", "2026-11-18 11:00"])
+
     def test_instagram_endpoints_are_gone(self):
         # Meta's Ad Library returns only political/issue ads outside the EU, so OTT no longer
         # offers Instagram numbers (2026-11-19).

@@ -137,8 +137,10 @@ def search_google_trends_custom(
                         "related_queries": [],
                     }
 
+                # 1-day and 7-day ranges come back hourly: keep the hour so points stay distinct
+                fmt = "%Y-%m-%d %H:%M" if timeframe.startswith("now") else "%Y-%m-%d"
                 for date_val, row in df.iterrows():
-                    dt_str = date_val.strftime("%Y-%m-%d") if hasattr(date_val, "strftime") else str(date_val)[:10]
+                    dt_str = date_val.strftime(fmt) if hasattr(date_val, "strftime") else str(date_val)[:16]
                     vals = {}
                     for kw in clean_kws:
                         val = float(row[kw]) if kw in row else 0.0
@@ -196,8 +198,6 @@ def search_google_trends_custom(
 
     summaries = {}
     for kw in clean_kws:
-        rng = example_rng(kw, "google_custom")
-        base = 30 + rng.randrange(50)
         summaries[kw] = {
             "keyword": kw,
             "peak_period": None,

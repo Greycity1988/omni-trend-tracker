@@ -1,5 +1,5 @@
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from typing import List, Literal, Optional, Dict, Any
+from pydantic import BaseModel
 
 class KeywordTrendRequest(BaseModel):
     keyword: str
@@ -79,9 +79,10 @@ class DataLabSearchResponse(BaseModel):
 # --- Google Trends Multi-Keyword Precision Models ---
 class GoogleTrendsSearchRequest(BaseModel):
     keywords: List[str]                  # 1 to 5 keywords
-    timeframe: str = "today 12-m"        # "now 1-d", "now 7-d", "today 1-m", "today 3-m", "today 12-m", "today 5-y"
-    geo: str = "KR"                      # "KR", "KR-11", "KR-41", "", "US", "JP"
-    gprop: str = ""                      # "", "youtube", "froogle", "news"
+    # Only the options the studio offers are passed on to Google.
+    timeframe: Literal["now 1-d", "now 7-d", "today 1-m", "today 3-m", "today 12-m", "today 5-y"] = "today 12-m"
+    geo: Literal["KR", "KR-11", "KR-41", "", "US", "JP"] = "KR"
+    gprop: Literal["", "youtube", "froogle", "news"] = ""
 
 class GoogleTrendsDataPoint(BaseModel):
     period: str
