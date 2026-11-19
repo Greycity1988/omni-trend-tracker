@@ -88,7 +88,7 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                             : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]'
                         }`}
                       >
-                        {p.is_live ? 'LIVE DATA' : 'MOCK PREVIEW'}
+                        {p.is_live ? 'LIVE DATA' : '예시 데이터'}
                       </span>
                     </h4>
                     <span className="text-[11px] text-slate-500 dark:text-[#AEAEAE] font-mono">

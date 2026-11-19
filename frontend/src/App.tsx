@@ -32,7 +32,7 @@ export const App: React.FC = () => {
   >('cross_channel');
 
   // Cross-channel search state
-  const [keyword, setKeyword] = useState<string>('선크림');
+  const [keyword, setKeyword] = useState<string>('');
   const [data, setData] = useState<OmniTrendResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -172,8 +172,9 @@ export const App: React.FC = () => {
     }
   };
 
+  // No search on page load: each lookup calls the platform APIs (and their quotas),
+  // and a page without a data server should not open on an error.
   useEffect(() => {
-    fetchTrend('선크림');
     fetchKeysStatus();
   }, []);
 
@@ -289,7 +290,17 @@ export const App: React.FC = () => {
               <div className="py-20 flex flex-col items-center justify-center space-y-3 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-[#26272c] dark:bg-[#141416] transition-colors">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-[#A8FF1A]" />
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-[#AEAEAE] font-mono font-medium">
-                  네이버, 구글, 핀터레스트, 인스타그램 트렌드 수집 및 지수화 중...
+                  채널별 트렌드 수집 및 지수화 중...
+                </p>
+              </div>
+            )}
+
+            {/* Empty state before the first search */}
+            {!data && !isLoading && !errorMessage && (
+              <div className="py-16 px-6 flex flex-col items-center justify-center space-y-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 text-center dark:border-[#2e2f36] dark:bg-[#141416]/60 transition-colors">
+                <p className="text-sm font-bold text-slate-800 dark:text-white">키워드를 입력하고 검색해 보세요</p>
+                <p className="text-xs text-slate-500 dark:text-[#AEAEAE]">
+                  네이버·구글·인스타그램의 최근 1년 관심도를 한 차트로 비교합니다. 예: 선크림, 러닝화, 린넨셔츠
                 </p>
               </div>
             )}

@@ -366,7 +366,7 @@ export const InstagramPrecisionStudio: React.FC<InstagramPrecisionStudioProps> =
                         : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#251f14] dark:text-amber-400 dark:border-amber-900/50'
                     }`}
                   >
-                    {resultData.is_live ? '실시간 Meta Ads 연동' : '정밀 시뮬레이션 모드'}
+                    {resultData.is_live ? '실시간 Meta Ads 연동' : '예시 데이터 · 실제 아님'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">

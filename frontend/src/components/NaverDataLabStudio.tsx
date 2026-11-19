@@ -519,7 +519,7 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
                   네이버 검색 트렌드 비교 리포트
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-[#03C75A] text-white shadow-sm">
-                  {resultData.is_live ? 'LIVE DATALAB' : 'PREVIEW'}
+                  {resultData.is_live ? 'LIVE DATALAB' : '예시 데이터 · 실제 아님'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">

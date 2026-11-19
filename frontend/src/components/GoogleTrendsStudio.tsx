@@ -345,7 +345,7 @@ export const GoogleTrendsStudio: React.FC<GoogleTrendsStudioProps> = ({
                         : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#251f14] dark:text-amber-400 dark:border-amber-900/50'
                     }`}
                   >
-                    {resultData.is_live ? '실시간 구글 공식 데이터' : '시뮬레이션 모드'}
+                    {resultData.is_live ? '실시간 구글 공식 데이터' : '예시 데이터 · 실제 아님'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">
