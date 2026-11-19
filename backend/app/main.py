@@ -1,16 +1,34 @@
 import asyncio
 import datetime
+import os
 import time
 import unicodedata
 from collections import OrderedDict, defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .config import ALLOWED_ORIGINS, ENABLED_PLATFORMS
-from .models import OmniTrendResponse, TimelinePoint, PlatformMetric
-from .services.naver import fetch_naver_trend
-from .services.google import fetch_google_trend
+from .config import (
+    ALLOWED_ORIGINS,
+    ENABLED_PLATFORMS,
+    NAVER_CLIENT_ID,
+    NAVER_CLIENT_SECRET,
+    META_ACCESS_TOKEN,
+    PINTEREST_ACCESS_TOKEN,
+)
+from .models import (
+    OmniTrendResponse,
+    TimelinePoint,
+    PlatformMetric,
+    DataLabSearchRequest,
+    DataLabSearchResponse,
+    GoogleTrendsSearchRequest,
+    GoogleTrendsSearchResponse,
+    MetaPrecisionSearchRequest,
+    MetaPrecisionSearchResponse,
+)
+from .services.naver import fetch_naver_trend, search_naver_datalab_custom
+from .services.google import fetch_google_trend, search_google_trends_custom
 from .services.pinterest import fetch_pinterest_trend
-from .services.meta import fetch_meta_trend
+from .services.meta import fetch_meta_trend, search_meta_precision_custom
 
 app = FastAPI(
     title="Omni Trend Tracker API",
@@ -22,7 +40,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -36,11 +54,17 @@ _cache: "OrderedDict[str, tuple]" = OrderedDict()
 _lookups: dict = {}
 
 # Resolved at call time so tests can replace the fetchers
+def _fetch_meta(keyword: str):
+    try:
+        return fetch_meta_trend(keyword, live=bool(META_ACCESS_TOKEN and os.getenv("ENABLE_LIVE_META", "1") == "1"))
+    except TypeError:
+        return fetch_meta_trend(keyword)
+
 FETCHERS = {
     "naver": lambda keyword: fetch_naver_trend(keyword),
     "google": lambda keyword: fetch_google_trend(keyword),
     "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
-    "meta": lambda keyword: fetch_meta_trend(keyword),
+    "meta": _fetch_meta,
 }
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",
@@ -131,7 +155,7 @@ async def get_omni_trend(keyword: str, request: Request):
     elif all(c < 0 for c in changes):
         overall_sentiment = "하락"
     else:
-        overall_sentiment = "혼조"
+        overall_sentiment = "채널별 상이"
 
     if live:
         change_text = ", ".join(
@@ -181,8 +205,94 @@ async def get_omni_trend(keyword: str, request: Request):
         cross_platform_keywords=cross_keywords[:15]
     )
 
-    _cache[keyword] = (time.monotonic() + CACHE_TTL_SECONDS, response)
+    # If core live platforms had a temporary network glitch, use short 5s TTL instead of 600s
+    has_fallback = any(
+        not res.get("is_live", False)
+        for name, res in results.items()
+        if name in ("naver", "google")
+    )
+    ttl = 5 if has_fallback else CACHE_TTL_SECONDS
+    _cache[keyword] = (time.monotonic() + ttl, response)
     _cache.move_to_end(keyword)
     while len(_cache) > CACHE_MAX_ENTRIES:
         _cache.popitem(last=False)
     return response
+
+
+@app.post("/api/datalab/search", response_model=DataLabSearchResponse)
+async def datalab_search(req: DataLabSearchRequest):
+    """Naver DataLab multi-topic search query identical to datalab.naver.com."""
+    try:
+        res = search_naver_datalab_custom(
+            start_date=req.start_date,
+            end_date=req.end_date,
+            time_unit=req.time_unit,
+            keyword_groups=[{"group_name": g.group_name, "keywords": g.keywords} for g in req.keyword_groups],
+            device=req.device,
+            gender=req.gender,
+            ages=req.ages,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"데이터랩 조회 오류: {str(e)}")
+
+
+@app.post("/api/google/search", response_model=GoogleTrendsSearchResponse)
+async def google_trends_search(req: GoogleTrendsSearchRequest):
+    """Google Trends multi-keyword comparison query (1~5 keywords)."""
+    try:
+        res = search_google_trends_custom(
+            keywords=req.keywords,
+            timeframe=req.timeframe,
+            geo=req.geo,
+            gprop=req.gprop,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"구글 트렌드 조회 오류: {str(e)}")
+
+
+@app.post("/api/meta/search", response_model=MetaPrecisionSearchResponse)
+async def meta_precision_search(req: MetaPrecisionSearchRequest):
+    """Meta Instagram Ads Archive multi-keyword & brand intelligence search."""
+    try:
+        res = search_meta_precision_custom(
+            keywords=req.keywords,
+            country=req.country,
+            status=req.status,
+            publisher_platform=req.publisher_platform,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"인스타그램 광고 조회 오류: {str(e)}")
+
+
+@app.post("/api/meta/refresh-token")
+async def meta_refresh_token():
+    """Exchanges current Meta access token for a new 60-day token using App ID & App Secret."""
+    from .services.meta import refresh_meta_long_lived_token
+    res = refresh_meta_long_lived_token()
+    if not res:
+        raise HTTPException(
+            status_code=400,
+            detail="토큰 연장 실패: META_APP_ID 및 META_APP_SECRET이 .env에 등록되어 있는지 확인해주세요."
+        )
+    return res
+
+
+
+@app.get("/api/keys/status")
+async def keys_status():
+    """Returns the live connection status of each platform API."""
+    return {
+        "naver": bool(NAVER_CLIENT_ID and NAVER_CLIENT_SECRET),
+        "google": True,
+        "meta": bool(META_ACCESS_TOKEN),
+        "pinterest": bool(PINTEREST_ACCESS_TOKEN),
+    }
