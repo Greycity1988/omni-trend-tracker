@@ -3,32 +3,96 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
+
   body {
-    @apply bg-canvas text-ink-primary font-sans;
-    letter-spacing: -0.025em;
-    background-image: 
-      radial-gradient(at 10% 8%, rgba(192, 132, 252, 0.28) 0px, transparent 45%),
-      radial-gradient(at 90% 12%, rgba(244, 114, 182, 0.22) 0px, transparent 45%),
-      radial-gradient(at 50% 25%, rgba(186, 230, 253, 0.35) 0px, transparent 55%),
-      radial-gradient(at 85% 75%, rgba(216, 180, 254, 0.20) 0px, transparent 45%),
-      radial-gradient(at 15% 85%, rgba(199, 210, 254, 0.25) 0px, transparent 45%);
-    background-attachment: fixed;
-    background-color: #FFFFFF;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark body {
+    background-color: #010101;
+    color: #FFFFFF;
+  }
+
+  html.light body {
+    background-color: #F8F9FA;
+    color: #0F172A;
+  }
+
+  /* Scoped inputs: dark vs light */
+  html.dark input[type="text"],
+  html.dark input[type="number"],
+  html.dark select,
+  html.dark textarea {
+    background-color: #1a1b1f !important;
+    color: #FFFFFF !important;
+    border-color: #2e3036 !important;
+  }
+
+  html.dark input[type="text"]::placeholder,
+  html.dark input[type="number"]::placeholder,
+  html.dark textarea::placeholder {
+    color: #6E6E6E !important;
+  }
+
+  html.light input[type="text"],
+  html.light input[type="number"],
+  html.light select,
+  html.light textarea {
+    background-color: #FFFFFF !important;
+    color: #0F172A !important;
+    border-color: #CBD5E1 !important;
+  }
+
+  html.light input[type="text"]::placeholder,
+  html.light input[type="number"]::placeholder,
+  html.light textarea::placeholder {
+    color: #94A3B8 !important;
   }
 }
 
-/* Lifemed Minimalist Ultra-Clean Scrollbar */
+/* Tactile Canvas Texture */
+html.dark .monotone-canvas {
+  background-color: #010101;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+html.light .monotone-canvas {
+  background-color: #F8F9FA;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+
+html.dark ::-webkit-scrollbar-track {
+  background: #141416;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.10);
+html.dark ::-webkit-scrollbar-thumb {
+  background: #2e3036;
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.20);
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #A8FF1A;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }

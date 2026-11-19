@@ -1,18 +1,48 @@
 import asyncio
 import datetime
+import os
+import threading
+from contextlib import asynccontextmanager
 import time
 import unicodedata
 from collections import OrderedDict, defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .config import ALLOWED_ORIGINS, ENABLED_PLATFORMS
-from .models import OmniTrendResponse, TimelinePoint, PlatformMetric
-from .services.naver import fetch_naver_trend
-from .services.google import fetch_google_trend
+from .config import (
+    ALLOWED_ORIGINS,
+    ENABLED_PLATFORMS,
+    NAVER_CLIENT_ID,
+    NAVER_CLIENT_SECRET,
+    META_ACCESS_TOKEN,
+    PINTEREST_ACCESS_TOKEN,
+)
+from .models import (
+    OmniTrendResponse,
+    TimelinePoint,
+    PlatformMetric,
+    DataLabSearchRequest,
+    DataLabSearchResponse,
+    GoogleTrendsSearchRequest,
+    GoogleTrendsSearchResponse,
+    MetaPrecisionSearchRequest,
+    MetaPrecisionSearchResponse,
+)
+from .services.naver import fetch_naver_trend, search_naver_datalab_custom
+from .services.google import fetch_google_trend, search_google_trends_custom
 from .services.pinterest import fetch_pinterest_trend
-from .services.meta import fetch_meta_trend
+from .services.meta import fetch_meta_trend, search_meta_precision_custom
+
+@asynccontextmanager
+async def lifespan(_app):
+    # Renew the Meta token in the background when it is close to expiring (needs META_APP_ID and
+    # META_APP_SECRET). Off the startup path so a slow Graph API never delays the server.
+    from .services.meta import check_and_auto_renew_token
+    threading.Thread(target=check_and_auto_renew_token, daemon=True).start()
+    yield
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="Omni Trend Tracker API",
     description="Cross-platform Keyword & Trend Intelligence (Naver DataLab, Google Trends, Pinterest, Meta)",
     version="1.0.0"
@@ -22,7 +52,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -36,11 +66,17 @@ _cache: "OrderedDict[str, tuple]" = OrderedDict()
 _lookups: dict = {}
 
 # Resolved at call time so tests can replace the fetchers
+def _fetch_meta(keyword: str):
+    try:
+        return fetch_meta_trend(keyword, live=bool(META_ACCESS_TOKEN and os.getenv("ENABLE_LIVE_META", "1") == "1"))
+    except TypeError:
+        return fetch_meta_trend(keyword)
+
 FETCHERS = {
     "naver": lambda keyword: fetch_naver_trend(keyword),
     "google": lambda keyword: fetch_google_trend(keyword),
     "pinterest": lambda keyword: fetch_pinterest_trend(keyword),
-    "meta": lambda keyword: fetch_meta_trend(keyword),
+    "meta": _fetch_meta,
 }
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",
@@ -131,7 +167,7 @@ async def get_omni_trend(keyword: str, request: Request):
     elif all(c < 0 for c in changes):
         overall_sentiment = "하락"
     else:
-        overall_sentiment = "혼조"
+        overall_sentiment = "채널별 상이"
 
     if live:
         change_text = ", ".join(
@@ -181,8 +217,102 @@ async def get_omni_trend(keyword: str, request: Request):
         cross_platform_keywords=cross_keywords[:15]
     )
 
-    _cache[keyword] = (time.monotonic() + CACHE_TTL_SECONDS, response)
+    # If core live platforms had a temporary network glitch, use short 5s TTL instead of 600s
+    # Naver only counts when its keys are set: without keys it is always example data, and
+    # treating that as a glitch would turn the cache off and re-query Google on every search.
+    retry_soon = {"google"} | ({"naver"} if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET else set())
+    has_fallback = any(
+        not res.get("is_live", False)
+        for name, res in results.items()
+        if name in retry_soon
+    )
+    ttl = 5 if has_fallback else CACHE_TTL_SECONDS
+    _cache[keyword] = (time.monotonic() + ttl, response)
     _cache.move_to_end(keyword)
     while len(_cache) > CACHE_MAX_ENTRIES:
         _cache.popitem(last=False)
     return response
+
+
+def check_studio_request(request: Request, words: list) -> None:
+    """Studio searches call the external APIs every time (no cache), so they share the lookup limit."""
+    if len(words) > 30:
+        raise HTTPException(status_code=400, detail="키워드가 너무 많습니다.")
+    for word in words:
+        if not isinstance(word, str) or len(word) > MAX_KEYWORD_LENGTH:
+            raise HTTPException(status_code=400, detail=f"키워드는 {MAX_KEYWORD_LENGTH}자 이하로 입력해주세요.")
+    check_rate_limit(request.client.host if request.client else "unknown")
+
+
+def studio_error(label: str, err: Exception) -> HTTPException:
+    # The detail goes to the browser: never include the exception text (it can carry request URLs).
+    print(f"[{label} error] {type(err).__name__}")
+    return HTTPException(status_code=500, detail=f"{label} 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+
+@app.post("/api/datalab/search", response_model=DataLabSearchResponse)
+async def datalab_search(req: DataLabSearchRequest, request: Request):
+    """Naver DataLab multi-topic search query identical to datalab.naver.com."""
+    check_studio_request(request, [g.group_name for g in req.keyword_groups] + [k for g in req.keyword_groups for k in g.keywords])
+    try:
+        res = search_naver_datalab_custom(
+            start_date=req.start_date,
+            end_date=req.end_date,
+            time_unit=req.time_unit,
+            keyword_groups=[{"group_name": g.group_name, "keywords": g.keywords} for g in req.keyword_groups],
+            device=req.device,
+            gender=req.gender,
+            ages=req.ages,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise studio_error("데이터랩", e)
+
+
+@app.post("/api/google/search", response_model=GoogleTrendsSearchResponse)
+async def google_trends_search(req: GoogleTrendsSearchRequest, request: Request):
+    """Google Trends multi-keyword comparison query (1~5 keywords)."""
+    check_studio_request(request, req.keywords)
+    try:
+        res = search_google_trends_custom(
+            keywords=req.keywords,
+            timeframe=req.timeframe,
+            geo=req.geo,
+            gprop=req.gprop,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise studio_error("구글 트렌드", e)
+
+
+@app.post("/api/meta/search", response_model=MetaPrecisionSearchResponse)
+async def meta_precision_search(req: MetaPrecisionSearchRequest, request: Request):
+    """Meta Instagram Ads Archive multi-keyword & brand intelligence search."""
+    check_studio_request(request, req.keywords)
+    try:
+        res = search_meta_precision_custom(
+            keywords=req.keywords,
+            country=req.country,
+            status=req.status,
+            publisher_platform=req.publisher_platform,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise studio_error("인스타그램 광고", e)
+
+
+@app.get("/api/keys/status")
+async def keys_status():
+    """Returns the live connection status of each platform API."""
+    return {
+        "naver": bool(NAVER_CLIENT_ID and NAVER_CLIENT_SECRET),
+        "google": True,
+        "meta": bool(META_ACCESS_TOKEN),
+        "pinterest": bool(PINTEREST_ACCESS_TOKEN),
+    }

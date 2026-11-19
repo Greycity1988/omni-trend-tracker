@@ -18,99 +18,103 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
   const liveNames = channels.filter(([, p]) => p?.is_live).map(([key]) => CHANNEL_SHORT_NAMES[key] ?? key);
   const momentumColor =
     data.overall_sentiment === '상승'
-      ? 'text-violet-600'
+      ? 'text-emerald-600 dark:text-[#A8FF1A]'
       : data.overall_sentiment === '하락'
-        ? 'text-rose-600'
-        : 'text-ink-primary';
+        ? 'text-rose-600 dark:text-[#F34238]'
+        : data.overall_sentiment === '채널별 상이'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-slate-900 dark:text-white';
 
   return (
     <div className="space-y-4">
-      {/* 4 KPI Metrics Grid - Lifemed Style (Image 0 & 1) */}
+      {/* 4 KPI Metrics Grid - Dual Mode Family Look */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Peak Month */}
-        <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-5 dark:border-[#26272c] dark:bg-[#141416] flex flex-col justify-between space-y-2 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
+            <span className="tracking-wider text-[11px] font-bold text-slate-500 dark:text-[#AEAEAE] font-mono uppercase">
               PEAK MONTH
             </span>
-            <CalendarDays className="w-4 h-4 text-ink-muted" />
+            <CalendarDays className="w-4 h-4 text-slate-400 dark:text-[#AEAEAE]" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-ink-primary">
+            <span className="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white">
               {data.peak_month ?? '–'}
             </span>
           </div>
-          <div className="text-[11px] text-blue-600 font-medium mt-1">
-            최근 1년 중 관심도가 가장 높았던 달
+          <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] font-mono mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
+            최근 1년 중 최고 관심도 구간
           </div>
         </div>
 
-        {/* Metric 2: Dominant Channel */}
-        <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
-          <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
-              DOMINANT CHANNEL
+        {/* Metric 2: Dominant Channel (Signal Highlight) */}
+        <div className="rounded-3xl border border-emerald-500/40 bg-white shadow-xl p-5 dark:border-[#A8FF1A]/40 dark:bg-[#141416] flex flex-col justify-between space-y-2 relative overflow-hidden transition-colors">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 dark:bg-[#A8FF1A]/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between relative z-10">
+            <span className="tracking-wider text-[11px] font-bold text-emerald-700 dark:text-[#A8FF1A] font-mono uppercase flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#A8FF1A] shadow-[0_0_6px_#A8FF1A]" />
+              <span>DOMINANT CHANNEL</span>
             </span>
-            <Target className="w-4 h-4 text-violet-500" />
+            <Target className="w-4 h-4 text-emerald-600 dark:text-[#A8FF1A]" />
           </div>
-          <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-violet-700">
+          <div className="flex items-baseline space-x-1.5 mt-2 relative z-10">
+            <span className="text-3xl sm:text-4xl font-black tracking-tight text-emerald-700 dark:text-[#A8FF1A]">
               {data.dominant_platform ?? '–'}
             </span>
           </div>
-          <div className="text-[11px] text-violet-600 font-medium mt-1">
-            최근 관심도 지수가 가장 높은 채널
+          <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] mt-1 pt-1 border-t border-slate-100 dark:border-[#202126] relative z-10">
+            관심도 지수 최다 쿼리 채널
           </div>
         </div>
 
         {/* Metric 3: Momentum Status */}
-        <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-5 dark:border-[#26272c] dark:bg-[#141416] flex flex-col justify-between space-y-2 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-ink-muted uppercase">
+            <span className="tracking-wider text-[11px] font-bold text-slate-500 dark:text-[#AEAEAE] font-mono uppercase">
               MOMENTUM STATUS
             </span>
-            <Flame className="w-4 h-4 text-violet-500" />
+            <Flame className="w-4 h-4 text-slate-400 dark:text-[#AEAEAE]" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className={`text-xl sm:text-2xl font-bold tracking-tight ${momentumColor}`}>
+            <span className={`text-2xl sm:text-3xl font-black tracking-tight ${momentumColor}`}>
               {data.overall_sentiment}
             </span>
           </div>
-          <div className="text-[11px] text-ink-muted mt-1">
-            실제 데이터 채널의 직전 구간 대비 변화
+          <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
+            직전 구간 대비 모멘텀 변화율
           </div>
         </div>
 
-        {/* Metric 4: Live Data Channels - Lifemed Violet Highlight Card */}
-        <div className="bg-violet-50/70 rounded-2xl border border-violet-200/80 p-5 shadow-soft-xs hover:shadow-soft-sm transition-all">
+        {/* Metric 4: Live Data Channels */}
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-5 dark:border-[#26272c] dark:bg-[#141416] flex flex-col justify-between space-y-2 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="tracking-wider text-[11px] font-bold text-violet-800 uppercase">
+            <span className="tracking-wider text-[11px] font-bold text-slate-500 dark:text-[#AEAEAE] font-mono uppercase">
               LIVE DATA CHANNELS
             </span>
-            <TrendingUp className="w-4 h-4 text-violet-600" />
+            <TrendingUp className="w-4 h-4 text-slate-700 dark:text-white" />
           </div>
           <div className="flex items-baseline space-x-1.5 mt-2">
-            <span className="text-2xl sm:text-3xl font-extrabold font-mono text-violet-900">
+            <span className="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white">
               {liveNames.length} / {channels.length}
             </span>
-            <span className="text-xs text-violet-700 font-medium">채널</span>
+            <span className="text-xs text-slate-500 dark:text-[#AEAEAE] font-mono">채널</span>
           </div>
-          <div className="text-[11px] text-violet-700 font-bold mt-1">
-            {liveNames.length > 0 ? `실제 데이터: ${liveNames.join(' • ')}` : '실제 데이터 없음 (전부 예시)'}
+          <div className="text-[11px] text-emerald-700 dark:text-[#A8FF1A] font-bold mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
+            {liveNames.length > 0 ? `실제 연동: ${liveNames.join(' • ')}` : '공식 API 연결 대기'}
           </div>
         </div>
       </div>
 
       {/* Synthesis Insight Banner */}
-      <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-black/[0.06] p-5 shadow-soft-xs flex items-start space-x-3.5">
-        <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-200/80 flex items-center justify-center text-violet-600 flex-shrink-0 mt-0.5">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-xl p-5 dark:border-[#26272c] dark:bg-[#141416] flex items-start space-x-3.5 transition-colors">
+        <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-200 dark:bg-[#202126] dark:border-[#2e2f36] flex items-center justify-center text-emerald-700 dark:text-[#A8FF1A] flex-shrink-0 mt-0.5">
           <Sparkles className="w-4 h-4" />
         </div>
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-ink-primary">
-            통합 트렌드 인텔리전스 브리프
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
+            CROSS-CHANNEL SYNTHESIS INSIGHT
           </h4>
-          <p className="text-xs sm:text-sm text-ink-primary mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-[#AEAEAE] mt-1 leading-relaxed">
             {data.summary_insight}
           </p>
         </div>
