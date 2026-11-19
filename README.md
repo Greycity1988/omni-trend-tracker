@@ -37,7 +37,7 @@
 ## 🛠️ 기술 스택
 
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Recharts, Lucide Icons
-- **Backend**: Python 3.9+, FastAPI, Uvicorn, Pytrends, Pandas, Pydantic, HTTPX, Requests
+- **Backend**: Python 3.10+ (3.12에서 테스트), FastAPI, Uvicorn, Pytrends, Pandas, Pydantic, HTTPX, Requests
 - **Architecture**: Monorepo (`frontend/`, `backend/`)
 
 ---
@@ -47,15 +47,15 @@
 ### 1. 백엔드 실행 (FastAPI)
 ```bash
 cd backend
-python3 -m venv .venv
+python3 -m venv .venv   # Python 3.10 이상 (macOS 기본 3.9는 안 됩니다)
 source .venv/bin/activate
 pip install -r requirements.txt
-# 선택: backend/.env 에 위 표의 키를 넣으면 해당 채널이 실제 데이터로 바뀝니다.
+cp .env.example .env    # 선택: 위 표의 키를 넣으면 해당 채널이 실제 데이터로 바뀝니다.
 python run.py
 # Backend API: http://localhost:8000
 ```
 
-테스트: `cd backend && python -m pytest -q`
+테스트: `cd backend && pip install pytest && python -m pytest -q`
 
 ### 2. 프론트엔드 실행 (Vite)
 ```bash
