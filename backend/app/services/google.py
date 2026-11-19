@@ -4,7 +4,7 @@ import time
 import random
 from typing import Dict, Any, List
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
-from .periods import Window, bucket, change_pct, period_key, period_starts, window
+from .periods import Window, bucket, change_pct, is_google_weekly, pct, period_key, period_starts, window
 
 # urllib3 v2 backward-compatibility patch for pytrends (method_whitelist -> allowed_methods)
 try:
@@ -42,6 +42,7 @@ def _google_result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live
         "icon": "🌐",
         "relative_index": latest,
         "change_pct": change,
+        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else 0.0,
         "status": "rising" if change > 0 else "cooling",
         "primary_metric_label": "구글 관심도 지수",
         "primary_metric_value": f"{int(latest)}/100",
@@ -54,8 +55,10 @@ def _google_result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live
     }
 
 
-def fetch_google_trend(keyword: str, unit: str = "month", geo: str = "KR") -> Dict[str, Any]:
-    w = window(unit)
+def fetch_google_trend(keyword: str, unit="month", geo: str = "KR") -> Dict[str, Any]:
+    """unit: "day" | "week" | "month" for the preset window, or a Window (preset or chosen range)."""
+    w = unit if isinstance(unit, Window) else window(unit)
+    unit = w.unit
     # Try up to 2 attempts with short jittered backoff on rate-limits
     for attempt in range(2):
         try:
@@ -69,7 +72,7 @@ def fetch_google_trend(keyword: str, unit: str = "month", geo: str = "KR") -> Di
                     {"date": (d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)[:10]), "value": float(row[keyword])}
                     for d, row in df.iterrows()
                 ]
-                timeline = bucket(raw, w)
+                timeline = bucket(raw, w, google_weeks=is_google_weekly([p["date"] for p in raw]))
 
                 # Related queries (real ones when Google returns them, otherwise combinations to try)
                 try:
@@ -88,7 +91,7 @@ def fetch_google_trend(keyword: str, unit: str = "month", geo: str = "KR") -> Di
             break
 
     # Example data when Google Trends cannot be reached: one point per period
-    rng = example_rng(keyword, f"google_{unit}")
+    rng = example_rng(keyword, f"google_{unit}_{w.start}_{w.end}")
     base_val = 40 + rng.randrange(45)
     starts = period_starts(w)
     timeline = []

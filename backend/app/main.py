@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+from typing import Optional
 import os
 import time
 import unicodedata
@@ -24,7 +25,7 @@ from .models import (
 )
 from .services.naver import fetch_naver_trend, search_naver_datalab_custom
 from .services.google import fetch_google_trend, search_google_trends_custom
-from .services.periods import window
+from .services.periods import PeriodError, custom_window, window
 
 app = FastAPI(
     title="Omni Trend Tracker API",
@@ -113,10 +114,17 @@ async def get_omni_trend(
     keyword: str,
     request: Request,
     unit: Literal["day", "week", "month"] = Query("month", description="Period of each point"),
+    start: Optional[datetime.date] = Query(None, description="Chosen range start (YYYY-MM-DD); needs end"),
+    end: Optional[datetime.date] = Query(None, description="Chosen range end (YYYY-MM-DD), yesterday at the latest"),
 ):
     keyword = normalize_keyword(keyword)
-    w = window(unit)
-    cache_key = f"{keyword}|{unit}"
+    if (start is None) != (end is None):
+        raise HTTPException(status_code=400, detail="기간을 직접 고를 때는 시작일과 종료일을 모두 넣어 주세요.")
+    try:
+        w = custom_window(unit, start, end) if start else window(unit)
+    except PeriodError as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    cache_key = f"{keyword}|{unit}|{w.start}|{w.end}"
 
     cached = _cache.get(cache_key)
     if cached and cached[0] > time.monotonic():
@@ -125,7 +133,7 @@ async def get_omni_trend(
 
     # Run the enabled platform fetchers concurrently in parallel threads
     fetched = await asyncio.gather(
-        *(asyncio.to_thread(FETCHERS[name], keyword, unit) for name in ENABLED_PLATFORMS)
+        *(asyncio.to_thread(FETCHERS[name], keyword, w) for name in ENABLED_PLATFORMS)
     )
     results = dict(zip(ENABLED_PLATFORMS, fetched))
     # Everything said about the keyword as a whole rests on live platforms only
@@ -155,6 +163,12 @@ async def get_omni_trend(
             f"{PLATFORM_NAMES[dominant_key]}({int(live[dominant_key]['relative_index'])}점)입니다. "
             f"{w.change_label} 변화: {change_text}."
         )
+        if w.custom:
+            range_text = ", ".join(
+                f"{PLATFORM_NAMES[name]} {res.get('range_change_pct', 0.0):+}%" for name, res in live.items()
+            )
+            first_last = {"day": "첫날 대비 마지막 날", "week": "첫 주 대비 마지막 주", "month": "첫 달 대비 마지막 달"}[unit]
+            summary_insight += f" 선택 기간 {first_last}: {range_text}."
         if peak_period:
             peak_text = {"day": f"날은 {peak_period}", "week": f"주는 {peak_period}에 시작한 주", "month": f"달은 {peak_period}"}[unit]
             summary_insight += f" {w.span_text} 중 관심도가 가장 높았던 {peak_text}입니다."
@@ -185,6 +199,9 @@ async def get_omni_trend(
         updated_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         overall_sentiment=overall_sentiment,
         unit=unit,
+        start=w.start.isoformat(),
+        end=w.end.isoformat(),
+        custom=w.custom,
         dominant_platform=PLATFORM_NAMES[dominant_key] if dominant_key else None,
         peak_period=peak_period,
         summary_insight=summary_insight,

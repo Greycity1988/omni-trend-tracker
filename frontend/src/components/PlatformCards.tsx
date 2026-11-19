@@ -4,6 +4,8 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PlatformCardsProps {
   platforms: Partial<Record<string, PlatformMetric>>;
+  /** The user chose the range: also show first-to-last change */
+  custom?: boolean;
 }
 
 const BRAND_THEME: Record<string, {
@@ -26,7 +28,7 @@ const BRAND_THEME: Record<string, {
   },
 };
 
-export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
+export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms, custom = false }) => {
   const platformList = Object.values(platforms).filter((p): p is PlatformMetric => Boolean(p));
 
   return (
@@ -118,6 +120,16 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms }) => {
                   </span>
                 </div>
               </div>
+
+              {/* First-to-last change over the chosen range (live data only) */}
+              {custom && p.is_live && (
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-dashed border-slate-300 dark:border-[#2e2f36] text-xs">
+                  <span className="font-bold text-slate-500 dark:text-[#AEAEAE]">선택 기간 처음 대비 마지막</span>
+                  <span className={`font-black font-mono ${p.range_change_pct >= 0 ? 'text-emerald-700 dark:text-[#A8FF1A]' : 'text-rose-600 dark:text-[#F34238]'}`}>
+                    {p.range_change_pct > 0 ? `+${p.range_change_pct}%` : `${p.range_change_pct}%`}
+                  </span>
+                </div>
+              )}
 
               {/* Related Keywords List */}
               <div className="space-y-2">

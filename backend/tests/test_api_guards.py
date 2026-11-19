@@ -29,6 +29,7 @@ def fake_platform(name):
             "icon": "x",
             "relative_index": 80.0 if name == "naver" else 50.0,
             "change_pct": 1.0,
+            "range_change_pct": 30.0 if name == "naver" else 5.0,
             "status": "rising",
             "primary_metric_label": "a",
             "primary_metric_value": "b",
@@ -88,9 +89,39 @@ class ApiGuardTests(unittest.TestCase):
     def test_unit_is_passed_to_every_fetcher_and_echoed(self):
         body = self.client.get("/api/trend/선크림?unit=week").json()
         self.assertEqual(body["unit"], "week")
+        self.assertFalse(body["custom"])
         for f in self.fetchers.values():
-            f.assert_called_once_with("선크림", "week")
+            keyword, w = f.call_args.args
+            self.assertEqual((keyword, w.unit, w.custom), ("선크림", "week", False))
         self.assertIn("전주 대비", body["summary_insight"])
+
+    def test_chosen_range_is_widened_echoed_and_summarised(self):
+        body = self.client.get("/api/trend/선크림?unit=week&start=2026-03-04&end=2026-08-27").json()
+        self.assertEqual((body["start"], body["end"], body["custom"]), ("2026-03-02", "2026-08-30", True))
+        _, w = self.fetchers["google"].call_args.args
+        self.assertEqual((w.start.isoformat(), w.end.isoformat()), ("2026-03-02", "2026-08-30"))
+        self.assertIn("선택 기간 첫 주 대비 마지막 주: 네이버 데이터랩 +30.0%", body["summary_insight"])
+
+    def test_chosen_ranges_are_cached_separately(self):
+        self.client.get("/api/trend/선크림?unit=day&start=2026-09-01&end=2026-09-30")
+        self.client.get("/api/trend/선크림?unit=day&start=2026-09-01&end=2026-09-30")
+        self.client.get("/api/trend/선크림?unit=day&start=2026-08-01&end=2026-08-31")
+        self.assertEqual(self.fetchers["naver"].call_count, 2)
+
+    def test_bad_ranges_are_refused_before_any_external_call(self):
+        cases = {
+            "unit=day&start=2026-01-01": "모두",                 # end missing
+            "unit=day&start=2026-09-30&end=2026-09-01": "늦습니다",
+            "unit=day&start=2015-12-01&end=2016-02-01": "2016-01-01",
+            "unit=day&start=2025-01-01&end=2025-12-31": "9개월",   # too long for daily
+            "unit=month&start=2026-03-03&end=2026-03-20": "2개 이상",
+            "unit=day&start=2026-01-01&end=2999-01-01": "어제",
+        }
+        for query, words in cases.items():
+            r = self.client.get(f"/api/trend/선크림?{query}")
+            self.assertEqual(r.status_code, 400, query)
+            self.assertIn(words, r.json()["detail"], query)
+        self.fetchers["naver"].assert_not_called()
 
     def test_each_unit_is_cached_separately(self):
         for unit in ("day", "week", "month", "day"):
@@ -148,7 +179,8 @@ class ApiGuardTests(unittest.TestCase):
                 mock.patch.object(main, "NAVER_CLIENT_SECRET", "secret" if naver_keys else ""), \
                 mock.patch.object(main.time, "monotonic", return_value=1000.0):
             self.client.get("/api/trend/ttl")
-        return main._cache["ttl|month"][0] - 1000.0
+        key = next(k for k in main._cache if k.startswith("ttl|month|"))
+        return main._cache[key][0] - 1000.0
 
     def test_keyless_naver_does_not_turn_the_cache_off(self):
         # Without keys Naver is always example data; that is not a glitch to retry in 5 seconds.

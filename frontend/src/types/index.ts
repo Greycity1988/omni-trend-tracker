@@ -20,6 +20,8 @@ export interface PlatformMetric {
   relative_index: number;
   /** Last full period against the one before it, in percent */
   change_pct: number;
+  /** Last period against the first one in the window, in percent */
+  range_change_pct: number;
   status: 'rising' | 'stable' | 'cooling';
   primary_metric_label: string;
   primary_metric_value: string;
@@ -45,6 +47,11 @@ export interface OmniTrendResponse {
   /** Worked out from platforms with live data only: '상승' | '하락' | '채널별 상이' | '판단 불가' */
   overall_sentiment: string;
   unit: TrendUnit;
+  /** Applied window, widened to whole periods (YYYY-MM-DD) */
+  start: string;
+  end: string;
+  /** True when the user chose the range */
+  custom: boolean;
   dominant_platform: string | null;
   peak_period: string | null;
   summary_insight: string;

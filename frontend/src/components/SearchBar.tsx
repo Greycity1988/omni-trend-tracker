@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
-import { Search, Loader2, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, Loader2, Sparkles, TrendingUp, CalendarRange, X } from 'lucide-react';
 import { TrendUnit } from '../types';
-import { UNIT_OPTIONS } from '../utils/trendUnit';
+import {
+  DateRange,
+  EARLIEST_DATE,
+  UNIT_OPTIONS,
+  bestUnitFor,
+  daysBetween,
+  rangePresets,
+  rangeProblem,
+  unitBlockedReason,
+  yesterdayIso,
+} from '../utils/trendUnit';
 
 interface SearchBarProps {
   onSearch: (keyword: string) => void;
   isLoading: boolean;
   currentKeyword: string;
   unit: TrendUnit;
-  onUnitChange: (unit: TrendUnit) => void;
+  /** null: the preset window for the unit */
+  range: DateRange | null;
+  onPeriodChange: (unit: TrendUnit, range: DateRange | null) => void;
 }
 
 const POPULAR_KEYWORDS = [
@@ -21,8 +33,19 @@ const POPULAR_KEYWORDS = [
   '기능성베개',
 ];
 
-export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, currentKeyword, unit, onUnitChange }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, currentKeyword, unit, range, onPeriodChange }) => {
   const [inputVal, setInputVal] = useState(currentKeyword);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [draft, setDraft] = useState<DateRange>(() => range ?? rangePresets()[1].range);
+  const draftProblem = rangeProblem(draft);
+
+  const applyRange = (next: DateRange) => {
+    setDraft(next);
+    if (rangeProblem(next)) return;
+    setPickerOpen(false);
+    // A long range cannot be daily (Google): fall back to the smallest unit that fits.
+    onPeriodChange(bestUnitFor(next, unit), next);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,32 +75,128 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading, curre
           </p>
         </div>
 
-        {/* Period unit: day / week / month (complete periods only) */}
-        <div className="flex flex-col items-start sm:items-end gap-1 flex-shrink-0">
-          <div role="radiogroup" aria-label="보기 단위" className="inline-flex p-1 rounded-full bg-slate-100 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#2e2f36]">
-            {UNIT_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                role="radio"
-                aria-checked={unit === opt.id}
-                onClick={() => unit !== opt.id && onUnitChange(opt.id)}
-                disabled={isLoading}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer disabled:cursor-wait ${
-                  unit === opt.id
-                    ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-black'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-[#AEAEAE] dark:hover:text-white'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+        {/* Period: day / week / month, over the preset window or a chosen range */}
+        <div className="flex flex-col items-start sm:items-end gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div role="radiogroup" aria-label="보기 단위" className="inline-flex p-1 rounded-full bg-slate-100 border border-slate-200 dark:bg-[#1a1b1f] dark:border-[#2e2f36]">
+              {UNIT_OPTIONS.map((opt) => {
+                const blocked = unitBlockedReason(opt.id, range);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={unit === opt.id}
+                    title={blocked ?? undefined}
+                    onClick={() => unit !== opt.id && onPeriodChange(opt.id, range)}
+                    disabled={isLoading || Boolean(blocked)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                      unit === opt.id
+                        ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-black'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-[#AEAEAE] dark:hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPickerOpen((v) => !v)}
+              aria-expanded={pickerOpen}
+              disabled={isLoading}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer disabled:cursor-wait ${
+                range
+                  ? 'bg-[#A8FF1A] text-black border-transparent'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-[#1a1b1f] dark:text-[#AEAEAE] dark:border-[#2e2f36] dark:hover:text-white'
+              }`}
+            >
+              <CalendarRange className="w-3.5 h-3.5" />
+              <span>기간 직접 선택</span>
+            </button>
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-[#AEAEAE]">
-            {UNIT_OPTIONS.find((o) => o.id === unit)?.hint} · 끝난 기간만 집계
+          <span className="text-[11px] text-slate-500 dark:text-[#AEAEAE] flex items-center gap-1.5">
+            {range ? (
+              <>
+                <span>선택 기간 {range.start} ~ {range.end}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerOpen(false);
+                    onPeriodChange(unit, null);
+                  }}
+                  disabled={isLoading}
+                  aria-label="선택 기간 해제"
+                  className="inline-flex items-center rounded-full p-0.5 hover:bg-slate-200 dark:hover:bg-[#2e2f36] cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </>
+            ) : (
+              <span>{UNIT_OPTIONS.find((o) => o.id === unit)?.hint}</span>
+            )}
+            <span>· 끝난 기간만 집계</span>
           </span>
         </div>
       </div>
+
+      {/* Range picker */}
+      {pickerOpen && (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 dark:border-[#2e2f36] dark:bg-[#1a1b1f]">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex flex-col gap-1 text-[11px] font-bold text-slate-600 dark:text-[#AEAEAE]">
+              시작일
+              <input
+                type="date"
+                value={draft.start}
+                min={EARLIEST_DATE}
+                max={yesterdayIso()}
+                onChange={(e) => setDraft({ ...draft, start: e.target.value })}
+                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 dark:border-[#2e2f36] dark:bg-[#141416] dark:text-white dark:[color-scheme:dark]"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-[11px] font-bold text-slate-600 dark:text-[#AEAEAE]">
+              종료일
+              <input
+                type="date"
+                value={draft.end}
+                min={EARLIEST_DATE}
+                max={yesterdayIso()}
+                onChange={(e) => setDraft({ ...draft, end: e.target.value })}
+                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 dark:border-[#2e2f36] dark:bg-[#141416] dark:text-white dark:[color-scheme:dark]"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => applyRange(draft)}
+              disabled={Boolean(draftProblem) || isLoading}
+              className="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer dark:bg-white dark:text-black dark:hover:bg-slate-200"
+            >
+              이 기간으로 보기
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-[#AEAEAE] mr-1">빠른 선택</span>
+            {rangePresets().map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => applyRange(p.range)}
+                disabled={isLoading}
+                className="px-3 py-1 rounded-full text-[11px] font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 cursor-pointer dark:border-[#2e2f36] dark:bg-[#141416] dark:text-[#AEAEAE] dark:hover:text-white"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <p className={`text-[11px] ${draftProblem ? 'text-rose-600 dark:text-[#F34238]' : 'text-slate-500 dark:text-[#AEAEAE]'}`}>
+            {draftProblem ??
+              `${daysBetween(draft.start, draft.end)}일. 주 단위는 월~일, 월 단위는 1일~말일로 맞추고 아직 끝나지 않은 구간은 뺍니다. ` +
+                (unitBlockedReason('week', draft) ? '5년이 넘어 월 단위만 쓸 수 있습니다.' : unitBlockedReason('day', draft) ? '9개월이 넘어 일 단위는 쓸 수 없습니다.' : '일·주·월 모두 쓸 수 있습니다.')}
+          </p>
+        </div>
+      )}
 
       {/* Main Search Input Form */}
       <form onSubmit={handleSubmit} className="relative flex items-center">

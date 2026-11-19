@@ -18,9 +18,12 @@ interface UnifiedTrendChartProps {
   keyword: string;
   platforms: Partial<Record<PlatformKey, PlatformMetric>>;
   unit: TrendUnit;
+  custom: boolean;
+  start: string;
+  end: string;
 }
 
-export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword, platforms, unit }) => {
+export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, keyword, platforms, unit, custom, start, end }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -38,9 +41,10 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
   const dash = (key: PlatformKey) => (platforms[key]?.is_live ? undefined : '5 4');
   const hasExample = Object.values(platforms).some((p) => p && !p.is_live);
 
+  const multiYear = timeline.length > 1 && timeline[0].date.slice(0, 4) !== timeline[timeline.length - 1].date.slice(0, 4);
   const formattedData = timeline.map((p) => ({
     ...p,
-    displayDate: formatPeriod(p.date, unit),
+    displayDate: formatPeriod(p.date, unit, multiYear),
     fullDate: describePeriod(p.date, unit),
   }));
 
@@ -56,7 +60,7 @@ export const UnifiedTrendChart: React.FC<UnifiedTrendChartProps> = ({ timeline, 
             </h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-1">
-            ‘{keyword}’ 키워드의 {UNIT_TEXT[unit].span} {UNIT_TEXT[unit].each} 관심도 (채널마다 자체 최고점을 100으로 환산)
+            ‘{keyword}’ 키워드의 {custom ? `${start} ~ ${end}` : UNIT_TEXT[unit].span} {UNIT_TEXT[unit].each} 관심도 (채널마다 자체 최고점을 100으로 환산)
             {hasExample && ' · 점선은 예시 데이터'}
           </p>
         </div>

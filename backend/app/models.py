@@ -17,6 +17,7 @@ class PlatformMetric(BaseModel):
     icon: str
     relative_index: float  # 0 to 100
     change_pct: float  # last full period against the one before it
+    range_change_pct: float = 0.0  # last period against the first one in the window
     status: str
     primary_metric_label: str
     primary_metric_value: str
@@ -31,6 +32,9 @@ class OmniTrendResponse(BaseModel):
     updated_at: str
     overall_sentiment: str
     unit: str = "month"  # day | week | month
+    start: Optional[str] = None  # applied window, widened to whole periods (YYYY-MM-DD)
+    end: Optional[str] = None
+    custom: bool = False  # True when the user chose the range
     dominant_platform: Optional[str] = None
     peak_period: Optional[str] = None
     summary_insight: str

@@ -42,7 +42,7 @@ export const OverviewStats: React.FC<OverviewStatsProps> = ({ data }) => {
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-[#AEAEAE] font-mono mt-1 pt-1 border-t border-slate-100 dark:border-[#202126]">
-            {UNIT_TEXT[data.unit].span} 중 최고 관심도 구간
+            {data.custom ? '선택 기간' : UNIT_TEXT[data.unit].span} 중 최고 관심도 구간
           </div>
         </div>
 

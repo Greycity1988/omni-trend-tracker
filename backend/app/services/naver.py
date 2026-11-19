@@ -5,7 +5,7 @@ import urllib.request
 from typing import Dict, Any, List, Optional
 from ..config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
-from .periods import Window, bucket, change_pct, period_key, period_starts, window
+from .periods import Window, bucket, change_pct, pct, period_key, period_starts, window
 
 DISPLAY_NAME = "네이버 데이터랩 (Naver DataLab)"
 
@@ -32,6 +32,7 @@ def _request_datalab_full(url: str, headers: Dict[str, str], body: bytes) -> Opt
 
 
 LAST_PERIOD = {"day": "어제", "week": "지난주", "month": "지난달"}
+LAST_IN_RANGE = {"day": "마지막 날", "week": "마지막 주", "month": "마지막 달"}
 
 
 def _result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live: bool) -> Dict[str, Any]:
@@ -43,8 +44,9 @@ def _result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live: bool)
         "icon": "🟩",
         "relative_index": latest,
         "change_pct": change,
+        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else 0.0,
         "status": "rising" if change > 0 else "cooling",
-        "primary_metric_label": f"네이버 검색 지수 ({LAST_PERIOD[w.unit]})",
+        "primary_metric_label": f"네이버 검색 지수 ({LAST_IN_RANGE[w.unit] if w.custom else LAST_PERIOD[w.unit]})",
         "primary_metric_value": f"{int(latest)}/100",
         "secondary_metric_label": w.change_label if live else EXAMPLE_METRIC_LABEL,
         "secondary_metric_value": f"{change:+}%" if live else EXAMPLE_METRIC_VALUE,
@@ -55,8 +57,10 @@ def _result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live: bool)
     }
 
 
-def fetch_naver_trend(keyword: str, unit: str = "month") -> Dict[str, Any]:
-    w = window(unit)
+def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
+    """unit: "day" | "week" | "month" for the preset window, or a Window (preset or chosen range)."""
+    w = unit if isinstance(unit, Window) else window(unit)
+    unit = w.unit
     if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET:
         body = {
             "startDate": w.start.isoformat(),
@@ -102,7 +106,7 @@ def fetch_naver_trend(keyword: str, unit: str = "month") -> Dict[str, Any]:
             print(f"[Naver Legacy API error] {type(e).__name__} {getattr(e, 'code', '')}")
 
     # Example data: one point per period, stable for the same keyword
-    rng = example_rng(keyword, f"naver_{unit}")
+    rng = example_rng(keyword, f"naver_{unit}_{w.start}_{w.end}")
     base_val = 50 + rng.randrange(40)
     starts = period_starts(w)
     timeline = []

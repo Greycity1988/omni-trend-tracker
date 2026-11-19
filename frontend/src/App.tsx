@@ -23,6 +23,7 @@ import {
 } from './types';
 import { AlertCircle, Loader2, Sparkles, Layers, Globe } from 'lucide-react';
 import { useTheme } from './utils/useTheme';
+import { DateRange } from './utils/trendUnit';
 
 export const App: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -33,6 +34,8 @@ export const App: React.FC = () => {
   // Cross-channel search state
   const [keyword, setKeyword] = useState<string>('');
   const [unit, setUnit] = useState<TrendUnit>('month');
+  // null: the preset window for the unit (last 30 days / 52 weeks / 12 months)
+  const [range, setRange] = useState<DateRange | null>(null);
   // Only the latest request may update the screen (switching units quickly sends several).
   const latestRequest = useRef(0);
   const [data, setData] = useState<OmniTrendResponse | null>(null);
@@ -63,14 +66,19 @@ export const App: React.FC = () => {
     }
   };
 
-  const fetchTrend = async (query: string, period: TrendUnit = unit) => {
+  const fetchTrend = async (query: string, period: TrendUnit = unit, chosen: DateRange | null = range) => {
     const requestId = ++latestRequest.current;
     try {
       setIsLoading(true);
       setErrorMessage(null);
       setKeyword(query);
 
-      const res = await fetch(`/api/trend/${encodeURIComponent(query)}?unit=${period}`);
+      const params = new URLSearchParams({ unit: period });
+      if (chosen) {
+        params.set('start', chosen.start);
+        params.set('end', chosen.end);
+      }
+      const res = await fetch(`/api/trend/${encodeURIComponent(query)}?${params}`);
       if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
         throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 로컬 백엔드 서버(포트 8000)를 가동해 주세요.');
       }
@@ -227,10 +235,12 @@ export const App: React.FC = () => {
               isLoading={isLoading}
               currentKeyword={keyword}
               unit={unit}
-              onUnitChange={(next) => {
-                setUnit(next);
-                // Re-run the current keyword in the new unit; before the first search just remember it.
-                if (keyword) fetchTrend(keyword, next);
+              range={range}
+              onPeriodChange={(nextUnit, nextRange) => {
+                setUnit(nextUnit);
+                setRange(nextRange);
+                // Re-run the current keyword; before the first search just remember the choice.
+                if (keyword) fetchTrend(keyword, nextUnit, nextRange);
               }}
             />
 
@@ -278,8 +288,8 @@ export const App: React.FC = () => {
             {data && (
               <div className="space-y-8 animate-fadeIn">
                 <OverviewStats data={data} />
-                <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} unit={data.unit} />
-                <PlatformCards platforms={data.platforms} />
+                <UnifiedTrendChart timeline={data.timeline} keyword={data.keyword} platforms={data.platforms} unit={data.unit} custom={data.custom} start={data.start} end={data.end} />
+                <PlatformCards platforms={data.platforms} custom={data.custom} />
                 <RelatedKeywords keywords={data.cross_platform_keywords} keyword={data.keyword} />
               </div>
             )}

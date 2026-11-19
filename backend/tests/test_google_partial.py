@@ -35,7 +35,7 @@ class GooglePartialPeriodTests(unittest.TestCase):
 
     def test_weekly_overview_uses_full_weeks_in_the_window(self):
         w = window("week")
-        last_sunday = w.google_end - datetime.timedelta(days=6)  # Google weeks start on Sunday
+        last_sunday = w.end - datetime.timedelta(days=7)  # the Google week before our last Monday
         rows = [(str(last_sunday - datetime.timedelta(days=7)), 70, False),
                 (str(last_sunday), 77, False),
                 (str(last_sunday + datetime.timedelta(days=7)), 10, True)]
