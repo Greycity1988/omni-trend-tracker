@@ -1,4 +1,5 @@
 import asyncio
+import os
 import datetime
 import time
 import unicodedata
@@ -71,6 +72,16 @@ def normalize_keyword(raw: str) -> str:
     return keyword
 
 
+def client_ip(request: Request) -> str:
+    """The visitor's address for rate limiting. On Vercel every request comes through its proxy,
+    which puts the real address first in X-Forwarded-For; elsewhere the header is not trusted."""
+    if os.getenv("VERCEL"):
+        forwarded = request.headers.get("x-forwarded-for", "")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def check_rate_limit(client: str) -> None:
     now = time.monotonic()
     window = _lookups.setdefault(client, deque())
@@ -127,7 +138,7 @@ async def get_omni_trend(
     cached = _cache.get(cache_key)
     if cached and cached[0] > time.monotonic():
         return cached[1]
-    check_rate_limit(request.client.host if request.client else "unknown")
+    check_rate_limit(client_ip(request))
 
     # Run the enabled platform fetchers concurrently in parallel threads
     fetched = await asyncio.gather(
@@ -235,7 +246,7 @@ def check_studio_request(request: Request, words: list) -> None:
     for word in words:
         if not isinstance(word, str) or len(word) > MAX_KEYWORD_LENGTH:
             raise HTTPException(status_code=400, detail=f"키워드는 {MAX_KEYWORD_LENGTH}자 이하로 입력해주세요.")
-    check_rate_limit(request.client.host if request.client else "unknown")
+    check_rate_limit(client_ip(request))
 
 
 def studio_error(label: str, err: Exception) -> HTTPException:

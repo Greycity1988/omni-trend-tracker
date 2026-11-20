@@ -17,7 +17,7 @@ export const CFR_URL: string =
 
 export const OTT_URL: string =
   import.meta.env.VITE_OTT_URL ??
-  (import.meta.env.DEV ? 'http://localhost:5174' : 'https://greycity1988.github.io/omni-trend-tracker/');
+  (import.meta.env.DEV ? 'http://localhost:5174' : 'https://omni-trend-tracker.vercel.app');
 
 export const GITHUB_ISSUES_URL = 'https://github.com/Greycity1988/omni-trend-tracker/issues/new';
 

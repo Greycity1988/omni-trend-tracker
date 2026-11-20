@@ -65,3 +65,22 @@ class StudioGuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ClientIpTests(unittest.TestCase):
+    def test_forwarded_for_is_used_only_on_vercel(self):
+        from starlette.requests import Request
+        scope = {"type": "http", "headers": [(b"x-forwarded-for", b"203.0.113.9, 10.0.0.1")], "client": ("10.0.0.1", 1)}
+        req = Request(scope)
+        with mock.patch.dict("os.environ", {"VERCEL": "1"}):
+            self.assertEqual(main.client_ip(req), "203.0.113.9")
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(main.client_ip(req), "10.0.0.1")  # a forged header is ignored off Vercel
+
+    def test_vercel_entry_point_exposes_the_app(self):
+        import importlib.util, pathlib
+        path = pathlib.Path(__file__).resolve().parents[2] / "api" / "index.py"
+        spec = importlib.util.spec_from_file_location("vercel_index", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        self.assertIs(mod.app, main.app)

@@ -80,7 +80,7 @@ export const App: React.FC = () => {
       }
       const res = await fetch(`/api/trend/${encodeURIComponent(query)}?${params}`);
       if (!(res.headers.get('content-type') ?? '').includes('application/json')) {
-        throw new Error('데이터 서버가 연결되어 있지 않아 조회할 수 없습니다. 로컬 백엔드 서버(포트 8000)를 가동해 주세요.');
+        throw new Error('데이터 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. 직접 실행 중이라면 backend 서버(포트 8000)를 켜 주세요.');
       }
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
