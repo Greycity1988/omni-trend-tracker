@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlatformMetric } from '../types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { changeText, changeTone } from '../utils/change';
 
 interface PlatformCardsProps {
   platforms: Partial<Record<string, PlatformMetric>>;
@@ -46,7 +47,8 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms, custom 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {platformList.map((p) => {
-          const isRising = p.change_pct >= 0;
+          const tone = changeTone(p.change_pct);
+          const isRising = tone !== 'down';
           const brand = BRAND_THEME[p.platform] || {
             color: '#64748b',
             pillBorder: 'hover:border-slate-400',
@@ -90,13 +92,17 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms, custom 
                 {/* Change Pill */}
                 <div
                   className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-mono font-black ${
-                    isRising
+                    tone === 'none'
+                      ? 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-[#202126] dark:text-[#AEAEAE] dark:border-[#2e2f36]'
+                      : isRising
                       ? 'bg-emerald-100 text-emerald-900 dark:bg-[#A8FF1A] dark:text-black dark:shadow-[0_0_8px_rgba(168,255,26,0.25)]'
                       : 'bg-rose-500 text-white shadow-sm'
                   }`}
                 >
-                  {isRising ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5 text-white" />}
-                  <span>{p.change_pct > 0 ? `+${p.change_pct}%` : `${p.change_pct}%`}</span>
+                  {tone === 'none' ? null : isRising ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5 text-white" />}
+                  <span title={tone === 'none' ? '비교하는 구간 중 하나가 0(검색량이 너무 적음)이라 변화율을 계산하지 않았습니다.' : undefined}>
+                    {changeText(p.change_pct)}
+                  </span>
                 </div>
               </div>
 
@@ -125,8 +131,8 @@ export const PlatformCards: React.FC<PlatformCardsProps> = ({ platforms, custom 
               {custom && p.is_live && (
                 <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl border border-dashed border-slate-300 dark:border-[#2e2f36] text-xs">
                   <span className="font-bold text-slate-500 dark:text-[#AEAEAE]">선택 기간 처음 대비 마지막</span>
-                  <span className={`font-black font-mono ${p.range_change_pct >= 0 ? 'text-emerald-700 dark:text-[#A8FF1A]' : 'text-rose-600 dark:text-[#F34238]'}`}>
-                    {p.range_change_pct > 0 ? `+${p.range_change_pct}%` : `${p.range_change_pct}%`}
+                  <span className={`font-black font-mono ${changeTone(p.range_change_pct) === 'none' ? 'text-slate-500 dark:text-[#AEAEAE]' : (p.range_change_pct ?? 0) >= 0 ? 'text-emerald-700 dark:text-[#A8FF1A]' : 'text-rose-600 dark:text-[#F34238]'}`}>
+                    {changeText(p.range_change_pct)}
                   </span>
                 </div>
               )}

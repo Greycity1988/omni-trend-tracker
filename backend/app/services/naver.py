@@ -5,7 +5,7 @@ import urllib.request
 from typing import Dict, Any, List, Optional
 from ..config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
-from .periods import PeriodError, Window, bucket, change_pct, pct, period_key, period_starts, whole_periods, window
+from .periods import change_text, PeriodError, Window, bucket, change_pct, pct, period_key, period_starts, whole_periods, window
 
 DISPLAY_NAME = "네이버 데이터랩 (Naver DataLab)"
 
@@ -78,12 +78,12 @@ def _result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live: bool)
         "icon": "🟩",
         "relative_index": latest,
         "change_pct": change,
-        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else 0.0,
-        "status": "rising" if change > 0 else "cooling",
+        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else None,
+        "status": "rising" if change is not None and change > 0 else "cooling",
         "primary_metric_label": f"네이버 검색 지수 ({LAST_IN_RANGE[w.unit] if w.custom else LAST_PERIOD[w.unit]})",
         "primary_metric_value": f"{int(latest)}/100",
         "secondary_metric_label": w.change_label if live else EXAMPLE_METRIC_LABEL,
-        "secondary_metric_value": f"{change:+}%" if live else EXAMPLE_METRIC_VALUE,
+        "secondary_metric_value": change_text(change) if live else EXAMPLE_METRIC_VALUE,
         "top_related_keywords": _suggested_keywords(keyword),
         "related_keywords_live": False,
         "timeline": timeline,
@@ -219,7 +219,7 @@ def search_naver_datalab_custom(
         peak_pt = max(pts, key=lambda x: x["ratio"]) if pts else None
         latest_ratio = pts[-1]["ratio"] if pts else 0.0
         prev_ratio = pts[-2]["ratio"] if len(pts) >= 2 else latest_ratio
-        change_pct = round(((latest_ratio - prev_ratio) / max(prev_ratio, 0.01)) * 100, 1) if prev_ratio > 0 else 0.0
+        group_change = pct(prev_ratio, latest_ratio) if len(pts) >= 2 else None
 
         results_list.append({
             "title": title,
@@ -228,7 +228,7 @@ def search_naver_datalab_custom(
             "peak_period": peak_pt["period"] if peak_pt else None,
             "peak_ratio": peak_pt["ratio"] if peak_pt else None,
             "latest_ratio": latest_ratio,
-            "change_pct": change_pct
+            "change_pct": group_change
         })
 
     return {

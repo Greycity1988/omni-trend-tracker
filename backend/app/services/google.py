@@ -4,7 +4,7 @@ import time
 import random
 from typing import Dict, Any, List
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
-from .periods import Window, bucket, change_pct, is_google_weekly, pct, period_key, period_starts, window
+from .periods import change_text, Window, bucket, change_pct, is_google_weekly, pct, period_key, period_starts, window
 
 # urllib3 v2 backward-compatibility patch for pytrends (method_whitelist -> allowed_methods)
 try:
@@ -42,12 +42,12 @@ def _google_result(keyword: str, w: Window, timeline: List[Dict[str, Any]], live
         "icon": "🌐",
         "relative_index": latest,
         "change_pct": change,
-        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else 0.0,
-        "status": "rising" if change > 0 else "cooling",
+        "range_change_pct": pct(timeline[0]["value"], latest) if len(timeline) >= 2 else None,
+        "status": "rising" if change is not None and change > 0 else "cooling",
         "primary_metric_label": "구글 관심도 지수",
         "primary_metric_value": f"{int(latest)}/100",
         "secondary_metric_label": w.change_label if live else EXAMPLE_METRIC_LABEL,
-        "secondary_metric_value": f"{change:+}%" if live else EXAMPLE_METRIC_VALUE,
+        "secondary_metric_value": change_text(change) if live else EXAMPLE_METRIC_VALUE,
         "top_related_keywords": related or fallback_related,
         "related_keywords_live": bool(related),
         "timeline": timeline,
@@ -138,7 +138,7 @@ def search_google_trends_custom(
                         "peak_value": 0.0,
                         "average_value": 0.0,
                         "latest_value": 0.0,
-                        "change_pct": 0.0,
+                        "change_pct": None,
                         "related_queries": [],
                     }
 
@@ -209,7 +209,7 @@ def search_google_trends_custom(
             "peak_value": 0.0,
             "average_value": 0.0,
             "latest_value": 0.0,
-            "change_pct": 0.0,
+            "change_pct": None,
             "related_queries": [f"{kw} 추천", f"{kw} 가격", f"{kw} 비교", f"{kw} 순위"],
         }
 
@@ -231,8 +231,7 @@ def search_google_trends_custom(
         summaries[kw]["peak_period"] = timeline[max_idx]["period"]
         summaries[kw]["average_value"] = round(sum(series) / len(series), 1)
         summaries[kw]["latest_value"] = series[-1]
-        prev_val = series[-2] if len(series) >= 2 else series[0]
-        summaries[kw]["change_pct"] = round(((series[-1] - prev_val) / max(prev_val, 1)) * 100, 1)
+        summaries[kw]["change_pct"] = change_pct(series)
 
     return {
         "timeframe": timeframe,

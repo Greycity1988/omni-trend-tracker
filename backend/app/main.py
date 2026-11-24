@@ -25,7 +25,7 @@ from .models import (
 )
 from .services.naver import fetch_naver_trend, naver_example, search_naver_datalab_custom
 from .services.google import fetch_google_trend, google_example, search_google_trends_custom
-from .services.periods import PeriodError, custom_window, window
+from .services.periods import PeriodError, change_text, custom_window, window
 
 app = FastAPI(
     title="Omni Trend Tracker API",
@@ -171,7 +171,8 @@ async def get_omni_trend(
     dominant_key = max(live, key=lambda name: live[name]["relative_index"]) if live else None
     peak_period = find_peak_period(timeline, live)
 
-    changes = [res["change_pct"] for res in live.values()]
+    # A channel whose change could not be measured (a 0 on either side) does not vote
+    changes = [res["change_pct"] for res in live.values() if res.get("change_pct") is not None]
     if not changes:
         overall_sentiment = "판단 불가"
     elif all(c > 0 for c in changes):
@@ -182,17 +183,17 @@ async def get_omni_trend(
         overall_sentiment = "채널별 상이"
 
     if live:
-        change_text = ", ".join(
-            f"{PLATFORM_NAMES[name]} {res['change_pct']:+}%" for name, res in live.items()
+        change_summary = ", ".join(
+            f"{PLATFORM_NAMES[name]} {change_text(res.get('change_pct'))}" for name, res in live.items()
         )
         summary_insight = (
             f"'{keyword}' 실제 데이터 기준, 최근 관심도 지수가 가장 높은 채널은 "
             f"{PLATFORM_NAMES[dominant_key]}({int(live[dominant_key]['relative_index'])}점)입니다. "
-            f"{w.change_label} 변화: {change_text}."
+            f"{w.change_label} 변화: {change_summary}."
         )
         if w.custom:
             range_text = ", ".join(
-                f"{PLATFORM_NAMES[name]} {res.get('range_change_pct', 0.0):+}%" for name, res in live.items()
+                f"{PLATFORM_NAMES[name]} {change_text(res.get('range_change_pct'))}" for name, res in live.items()
             )
             first_last = {"day": "첫날 대비 마지막 날", "week": "첫 주 대비 마지막 주", "month": "첫 달 대비 마지막 달"}[unit]
             summary_insight += f" 선택 기간 {first_last}: {range_text}."

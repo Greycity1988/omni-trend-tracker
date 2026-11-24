@@ -16,8 +16,8 @@ class PlatformMetric(BaseModel):
     display_name: str
     icon: str
     relative_index: float  # 0 to 100
-    change_pct: float  # last full period against the one before it
-    range_change_pct: float = 0.0  # last period against the first one in the window
+    change_pct: Optional[float]  # last full period against the one before it; None: too little data (a 0)
+    range_change_pct: Optional[float] = None  # last period against the first one in the window
     status: str
     primary_metric_label: str
     primary_metric_value: str
@@ -94,7 +94,7 @@ class GoogleKeywordSummary(BaseModel):
     peak_value: float = 0.0
     average_value: float = 0.0
     latest_value: float = 0.0
-    change_pct: float = 0.0
+    change_pct: Optional[float] = None  # None: too little data (a 0 on either side)
     related_queries: List[str] = []
 
 class GoogleTrendsSearchResponse(BaseModel):

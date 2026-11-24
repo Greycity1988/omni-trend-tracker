@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Newspaper,
 } from 'lucide-react';
+import { changeText, changeTone } from '../utils/change';
 import {
   ResponsiveContainer,
   LineChart,
@@ -465,14 +466,14 @@ export const GoogleTrendsStudio: React.FC<GoogleTrendsStudioProps> = ({
                       <span className="text-[10px] text-slate-500 dark:text-[#AEAEAE] block">직전 대비</span>
                       <span
                         className={`text-sm font-black mt-0.5 block ${
-                          summary.change_pct > 0
+                          changeTone(summary.change_pct) === 'up'
                             ? 'text-emerald-600 dark:text-[#A8FF1A]'
-                            : summary.change_pct < 0
+                            : changeTone(summary.change_pct) === 'down'
                             ? 'text-red-500 dark:text-[#F34238]'
                             : 'text-slate-500'
                         }`}
                       >
-                        {summary.change_pct > 0 ? `+${summary.change_pct}%` : `${summary.change_pct}%`}
+                        {changeText(summary.change_pct)}
                       </span>
                     </div>
                   </div>
