@@ -318,6 +318,7 @@ export const App: React.FC = () => {
       <SuiteFooter
         appName="OTT (Omni Trend Tracker)"
         emblem={<OTTLogo size={36} />}
+        privacyUrl="/privacy.html"
         onOpenFeedback={() => setIsFeedbackOpen(true)}
         onOpenDonation={() => setIsDonationOpen(true)}
       />

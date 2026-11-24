@@ -90,7 +90,12 @@ def fetch_google_trend(keyword: str, unit="month", geo: str = "KR") -> Dict[str,
             print(f"[Google Trends fallback] {type(e).__name__}")
             break
 
-    # Example data when Google Trends cannot be reached: one point per period
+    return google_example(keyword, w)
+
+
+def google_example(keyword: str, w: Window) -> Dict[str, Any]:
+    """Example data when Google Trends cannot be reached: one point per period, labelled as example."""
+    unit = w.unit
     rng = example_rng(keyword, f"google_{unit}_{w.start}_{w.end}")
     base_val = 40 + rng.randrange(45)
     starts = period_starts(w)

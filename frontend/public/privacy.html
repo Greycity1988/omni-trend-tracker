@@ -1,28 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Privacy Policy - Omni Trend Tracker</title>
+  <title>개인정보처리방침 - Omni Trend Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #1e293b; background: #f8fafc; }
-    h1 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
-    h2 { color: #334155; margin-top: 24px; }
-    .card { background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+    body { font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; line-height: 1.7; color: #1e293b; background: #f8fafc; }
+    h1 { font-size: 1.5rem; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-top: 0; }
+    h2 { font-size: 1.05rem; color: #334155; margin-top: 28px; }
+    ul { padding-left: 1.2em; }
+    a { color: #047857; word-break: break-all; }
+    .card { background: #fff; padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; }
+    .muted { color: #64748b; font-size: .9rem; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Privacy Policy for Omni Trend Tracker</h1>
-    <p><strong>Last updated:</strong> November 14, 2026</p>
-    <h2>1. Introduction</h2>
-    <p>Omni Trend Tracker operated by <strong>Greycity1988</strong> is a marketing intelligence and keyword analytics dashboard. We respect your privacy and are committed to protecting it through this Privacy Policy.</p>
-    <h2>2. Data Collection & API Usage</h2>
-    <p>We query aggregated public keyword search trends from third-party developer APIs (including Pinterest API, Naver DataLab, Google Trends, Meta Graph API). We do not collect or store personal identifiable information (PII), private pins, private boards, or personal passwords.</p>
-    <h2>3. Security</h2>
-    <p>Developer access credentials and API tokens are maintained securely in local private environments and are never disclosed or shared with third parties.</p>
-    <h2>4. Contact</h2>
-    <p>Developer / Entity: Greycity1988<br>Website: <a href="https://greycity1988.github.io/omni-trend-tracker/">https://greycity1988.github.io/omni-trend-tracker/</a></p>
+    <h1>개인정보처리방침</h1>
+    <p class="muted">Omni Trend Tracker · 최종 수정 2026-11-24</p>
+    <h2>이 문서가 다루는 것</h2>
+    <ul>
+      <li>Omni Trend Tracker(OTT, omni-trend-tracker.vercel.app)는 네이버 데이터랩과 구글 트렌드의 검색 관심도를 비교해 보여 주는 무료 도구입니다.</li>
+      <li>회원가입, 로그인, 쿠키, 방문 분석 도구가 없습니다. 이 문서는 OTT를 쓸 때 어떤 정보가 어디로 가는지 적은 것입니다.</li>
+    </ul>
+    <h2>입력한 키워드</h2>
+    <ul>
+      <li>조회한 키워드는 OTT 서버를 거쳐 네이버 데이터랩 API와 구글 트렌드로 보내집니다. 각 회사의 개인정보처리방침이 적용됩니다.</li>
+      <li>OTT 서버는 같은 조회를 다시 하지 않도록 결과를 서버 메모리에 최대 10분간 보관합니다. 데이터베이스나 파일에 저장하지 않습니다.</li>
+      <li>키워드는 요청 주소에 들어가므로 호스팅 회사(Vercel)의 접속 기록에 남을 수 있습니다. 개인정보는 키워드로 입력하지 마세요.</li>
+    </ul>
+    <h2>IP 주소</h2>
+    <ul>
+      <li>짧은 시간에 너무 많이 조회하지 못하도록(1분에 10회) 서버 메모리에서 IP 주소를 셉니다. 저장하지 않고 몇 분 안에 지워집니다.</li>
+      <li>호스팅 회사 Vercel은 서비스 운영을 위해 IP 주소, 접속 시각, 요청 주소를 기록합니다. Vercel의 개인정보처리방침이 적용됩니다.</li>
+    </ul>
+    <h2>글꼴</h2>
+    <ul>
+      <li>화면 글꼴을 Google Fonts와 jsDelivr에서 불러옵니다. 이때 브라우저가 두 서비스에 IP 주소를 보냅니다.</li>
+    </ul>
+    <h2>브라우저에 저장하는 것</h2>
+    <ul>
+      <li>라이트·다크 모드 선택만 브라우저 저장소(localStorage)에 저장합니다. 서버로 보내지 않습니다.</li>
+    </ul>
+    <h2>건의와 후원</h2>
+    <ul>
+      <li>&quot;Feedbacks &amp; feature ideas&quot;는 GitHub 이슈 작성 화면을 엽니다. 올린 이슈는 공개되며 GitHub의 정책이 적용됩니다. 내용을 확인하고 올리세요.</li>
+      <li>후원 링크는 Ko-fi로 이동합니다. OTT는 결제 정보를 받지 않습니다.</li>
+    </ul>
+    <h2>문의</h2>
+    <ul>
+      <li>GitHub 이슈: <a href="https://github.com/Greycity1988/omni-trend-tracker/issues">https://github.com/Greycity1988/omni-trend-tracker/issues</a></li>
+    </ul>
+    <p class="muted" style="margin-top:28px"><a href="/">← OTT로 돌아가기</a></p>
   </div>
 </body>
 </html>

@@ -90,7 +90,12 @@ def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
         except Exception as e:
             print(f"[Naver DataLab error] {type(e).__name__} {getattr(e, 'code', '')}")
 
-    # Example data: one point per period, stable for the same keyword
+    return naver_example(keyword, w)
+
+
+def naver_example(keyword: str, w: Window) -> Dict[str, Any]:
+    """Example data: one point per period, stable for the same keyword, labelled as example."""
+    unit = w.unit
     rng = example_rng(keyword, f"naver_{unit}_{w.start}_{w.end}")
     base_val = 50 + rng.randrange(40)
     starts = period_starts(w)
