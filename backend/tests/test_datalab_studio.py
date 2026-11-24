@@ -1,5 +1,6 @@
 import datetime
 import json
+import urllib.error
 import unittest
 from unittest import mock
 
@@ -39,20 +40,46 @@ class DataLabStudioTests(unittest.TestCase):
         self.assertFalse(res["is_live"])
         self.assertEqual(periods, [f"2025-{m:02d}-01" for m in range(1, 13)])
 
-    def test_keys_are_sent_to_the_official_host_only(self):
-        sent = []
-
-        def fake(url, headers, body):
-            sent.append((url, json.loads(body)))
+    def _fake_post(self, accept: str, sent: list):
+        def fake(url, headers, body, timeout):
+            sent.append((url, sorted(headers), json.loads(body)))
+            if accept not in url:
+                raise naver.urllib.error.HTTPError(url, 401, "Unauthorized", {}, None)
             return [{"title": "선크림", "keywords": ["선크림"], "data": [
                 {"period": "2025-01-01", "ratio": 50}, {"period": "2025-02-01", "ratio": 40}]}]
+        return fake
 
-        with mock.patch.object(naver, "NAVER_CLIENT_ID", "id"), mock.patch.object(naver, "NAVER_CLIENT_SECRET", "secret"), \
-                mock.patch.object(naver, "_request_datalab_full", side_effect=fake):
+    def _with_keys(self):
+        return mock.patch.multiple(naver, NAVER_CLIENT_ID="id", NAVER_CLIENT_SECRET="secret")
+
+    def test_api_hub_is_tried_first_with_ncp_headers(self):
+        sent = []
+        with self._with_keys(), mock.patch.object(naver, "_post", side_effect=self._fake_post("ntruss.com", sent)):
             res = naver.search_naver_datalab_custom("2025-01-10", "2025-02-20", "month", self.groups)
         self.assertTrue(res["is_live"])
-        self.assertEqual([u for u, _ in sent], ["https://openapi.naver.com/v1/datalab/search"])
-        self.assertEqual((sent[0][1]["startDate"], sent[0][1]["endDate"]), ("2025-01-01", "2025-02-28"))
+        self.assertEqual(len(sent), 1)
+        url, headers, body = sent[0]
+        self.assertEqual(url, "https://naverapihub.apigw.ntruss.com/search-trend/v1/search")
+        self.assertEqual(headers, ["X-NCP-APIGW-API-KEY", "X-NCP-APIGW-API-KEY-ID"])
+        self.assertEqual((body["startDate"], body["endDate"]), ("2025-01-01", "2025-02-28"))
+
+    def test_open_api_is_the_fallback_for_developers_keys(self):
+        sent = []
+        with self._with_keys(), mock.patch.object(naver, "_post", side_effect=self._fake_post("openapi.naver.com", sent)):
+            res = naver.fetch_naver_trend("선크림", naver.window("month"))
+        self.assertEqual([u for u, _, _ in sent], [
+            "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
+            "https://openapi.naver.com/v1/datalab/search",
+        ])
+        self.assertEqual(sent[1][1], ["X-Naver-Client-Id", "X-Naver-Client-Secret"])
+        self.assertTrue(res["is_live"])
+
+    def test_refused_keys_mean_example_data(self):
+        sent = []
+        with self._with_keys(), mock.patch.object(naver, "_post", side_effect=self._fake_post("nowhere", sent)):
+            res = naver.fetch_naver_trend("선크림", naver.window("month"))
+        self.assertEqual(len(sent), 2)
+        self.assertFalse(res["is_live"])
 
     def test_bad_ranges_are_refused_with_a_message(self):
         future = (datetime.date.today() + datetime.timedelta(days=3)).isoformat()

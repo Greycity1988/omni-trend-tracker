@@ -14,21 +14,40 @@ def _suggested_keywords(keyword: str) -> List[str]:
     return [f"{keyword} 브랜드", f"{keyword} 추천 순위", f"{keyword} 가격 비교", f"{keyword} 후기"]
 
 
-def _request_datalab(url: str, headers: Dict[str, str], body: bytes) -> Optional[List[Dict[str, Any]]]:
-    req = urllib.request.Request(url, data=body, headers={**headers, "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=7) as response:
-        if response.getcode() != 200:
-            return None
-        results = json.loads(response.read().decode("utf-8")).get("results", [])
-        return results[0].get("data") if results else None
+# Naver serves the DataLab search trend API at two addresses with different keys:
+#  1. NAVER API HUB on Naver Cloud (current; keys from the NCP console):
+#     https://api.ncloud-docs.com/docs/naver-api-hub-search-trend
+#  2. developers.naver.com Open API (older apps registered there).
+# The same Client ID/Secret is tried on each in turn; both hosts belong to Naver.
+ENDPOINTS = (
+    ("API HUB", "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
+     ("X-NCP-APIGW-API-KEY-ID", "X-NCP-APIGW-API-KEY")),
+    ("Open API", "https://openapi.naver.com/v1/datalab/search",
+     ("X-Naver-Client-Id", "X-Naver-Client-Secret")),
+)
 
 
-def _request_datalab_full(url: str, headers: Dict[str, str], body: bytes) -> Optional[List[Dict[str, Any]]]:
+def _post(url: str, headers: Dict[str, str], body: bytes, timeout: float) -> Optional[List[Dict[str, Any]]]:
     req = urllib.request.Request(url, data=body, headers={**headers, "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=10) as response:
+    with urllib.request.urlopen(req, timeout=timeout) as response:
         if response.getcode() != 200:
             return None
         return json.loads(response.read().decode("utf-8")).get("results", [])
+
+
+def _query_datalab(body: bytes, label: str, timeout: float = 7) -> Optional[List[Dict[str, Any]]]:
+    """DataLab results from the first address that accepts the keys, or None (keys missing or refused)."""
+    if not (NAVER_CLIENT_ID and NAVER_CLIENT_SECRET):
+        return None
+    for name, url, (id_header, secret_header) in ENDPOINTS:
+        headers = {id_header: NAVER_CLIENT_ID.strip(), secret_header: NAVER_CLIENT_SECRET.strip()}
+        try:
+            results = _post(url, headers, body, timeout)
+            if results:
+                return results
+        except Exception as e:
+            print(f"[{label} {name} error] {_naver_error(e)}")
+    return None
 
 
 def _naver_error(e: Exception) -> str:
@@ -90,20 +109,10 @@ def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
         def live(points):
             return _result(keyword, w, bucket([{"date": p["period"], "value": float(p["ratio"])} for p in points], w), True)
 
-        # Naver DataLab search trend API (keys from developers.naver.com). Keys go to this host only.
-        try:
-            data_points = _request_datalab(
-                "https://openapi.naver.com/v1/datalab/search",
-                {
-                    "X-Naver-Client-Id": NAVER_CLIENT_ID.strip(),
-                    "X-Naver-Client-Secret": NAVER_CLIENT_SECRET.strip(),
-                },
-                encoded_body,
-            )
-            if data_points:
-                return live(data_points)
-        except Exception as e:
-            print(f"[Naver DataLab error] {_naver_error(e)}")
+        results = _query_datalab(encoded_body, "Naver DataLab")
+        data_points = results[0].get("data") if results else None
+        if data_points:
+            return live(data_points)
 
     return naver_example(keyword, w)
 
@@ -175,18 +184,7 @@ def search_naver_datalab_custom(
     encoded_body = json.dumps(body_dict).encode("utf-8")
     raw_results = None
 
-    if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET:
-        try:
-            raw_results = _request_datalab_full(
-                "https://openapi.naver.com/v1/datalab/search",
-                {
-                    "X-Naver-Client-Id": NAVER_CLIENT_ID.strip(),
-                    "X-Naver-Client-Secret": NAVER_CLIENT_SECRET.strip(),
-                },
-                encoded_body,
-            )
-        except Exception as e:
-            print(f"[DataLab studio error] {_naver_error(e)}")
+    raw_results = _query_datalab(encoded_body, "DataLab studio", timeout=10)
 
     is_live = raw_results is not None
 

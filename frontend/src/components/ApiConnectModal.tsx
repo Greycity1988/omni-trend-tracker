@@ -110,17 +110,17 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
             <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700 dark:text-[#AEAEAE]">
               <li>
                 <a
-                  href="https://developers.naver.com/apps/#/register"
+                  href="https://api.ncloud-docs.com/docs/naver-api-hub-search-trend"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-700 dark:text-[#A8FF1A] font-semibold hover:underline inline-flex items-center gap-1"
                 >
-                  네이버 개발자 센터 <ExternalLink className="w-3 h-3" />
+                  네이버 클라우드 NAVER API HUB <ExternalLink className="w-3 h-3" />
                 </a>
-                에서 애플리케이션을 등록하고 사용 API로 ‘데이터랩(검색어 트렌드)’을 고릅니다.
+                에서 ‘검색어 트렌드’ API 키(Client ID, Client Secret)를 발급받습니다. 예전에 네이버 개발자 센터에서 받은 데이터랩 키도 그대로 쓸 수 있습니다.
               </li>
-              <li>발급된 Client ID와 Client Secret을 <code className="font-mono">backend/.env</code>의 <code className="font-mono">NAVER_CLIENT_ID</code>, <code className="font-mono">NAVER_CLIENT_SECRET</code>에 넣습니다.</li>
-              <li>백엔드 서버를 다시 켜면 적용됩니다. 하루 1,000회까지 무료입니다.</li>
+              <li>직접 실행할 때는 발급된 Client ID와 Client Secret을 <code className="font-mono">backend/.env</code>의 <code className="font-mono">NAVER_CLIENT_ID</code>, <code className="font-mono">NAVER_CLIENT_SECRET</code>에 넣습니다.</li>
+              <li>백엔드 서버를 다시 켜면 적용됩니다. Vercel에 배포했다면 같은 이름의 환경변수로 넣고 다시 배포합니다.</li>
             </ol>
           </div>
 
