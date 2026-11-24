@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   X,
   KeyRound,
@@ -20,10 +20,19 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
   onClose,
   status,
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="플랫폼 API 연동 상태" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-200 bg-white dark:border-[#26272c] dark:bg-[#141416] shadow-2xl overflow-hidden flex flex-col text-slate-900 dark:text-white transition-colors">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 dark:border-[#202126] flex items-center justify-between">
@@ -41,7 +50,10 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="닫기"
+            title="닫기 (Esc)"
             className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-[#AEAEAE] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#202126] transition cursor-pointer"
           >
             <X className="w-5 h-5" />

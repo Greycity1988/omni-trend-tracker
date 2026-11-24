@@ -28,7 +28,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="사용 가이드" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-3xl max-h-[90vh] rounded-3xl border border-slate-200 bg-white dark:border-[#26272c] dark:bg-[#141416] shadow-2xl overflow-hidden flex flex-col text-slate-900 dark:text-white transition-colors">
         {/* Header */}
         <div className="p-6 border-b border-slate-200 dark:border-[#26272c] flex items-center justify-between flex-shrink-0">
@@ -46,7 +46,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#AEAEAE] mt-0.5">
-                4대 플랫폼의 데이터 특성과 실무 마케팅/소재 기획 연계 노하우를 안내해 드립니다.
+                네이버·구글 두 채널의 데이터 특성과 마케팅·소재 기획에 쓰는 방법을 안내합니다.
               </p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
                   <span>구글 트렌드 (Google)</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-[#AEAEAE]">
-                  글로벌 관심도 및 기술/정보성 롱테일 검색 수요를 추적하기에 최적화된 지수입니다.
+                  정보 탐색과 롱테일 검색 수요를 봅니다. 통합 화면은 한국(KR) 기준이고, 구글 스튜디오에서 지역과 유튜브·쇼핑 검색을 고를 수 있습니다.
                 </p>
               </div>
 

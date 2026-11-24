@@ -5,7 +5,7 @@ import urllib.request
 from typing import Dict, Any, List, Optional
 from ..config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from .common import EXAMPLE_METRIC_LABEL, EXAMPLE_METRIC_VALUE, example_rng
-from .periods import Window, bucket, change_pct, pct, period_key, period_starts, window
+from .periods import PeriodError, Window, bucket, change_pct, pct, period_key, period_starts, whole_periods, window
 
 DISPLAY_NAME = "네이버 데이터랩 (Naver DataLab)"
 
@@ -75,22 +75,7 @@ def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
         def live(points):
             return _result(keyword, w, bucket([{"date": p["period"], "value": float(p["ratio"])} for p in points], w), True)
 
-        # 1. Try New NAVER API HUB (Naver Cloud Platform)
-        try:
-            data_points = _request_datalab(
-                "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
-                {
-                    "X-NCP-APIGW-API-KEY-ID": NAVER_CLIENT_ID.strip(),
-                    "X-NCP-APIGW-API-KEY": NAVER_CLIENT_SECRET.strip(),
-                },
-                encoded_body,
-            )
-            if data_points:
-                return live(data_points)
-        except Exception as e:
-            print(f"[NAVER API HUB error, trying legacy developers API] {type(e).__name__} {getattr(e, 'code', '')}")
-
-        # 2. Try Legacy Developers Open API
+        # Naver DataLab search trend API (keys from developers.naver.com). Keys go to this host only.
         try:
             data_points = _request_datalab(
                 "https://openapi.naver.com/v1/datalab/search",
@@ -103,7 +88,7 @@ def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
             if data_points:
                 return live(data_points)
         except Exception as e:
-            print(f"[Naver Legacy API error] {type(e).__name__} {getattr(e, 'code', '')}")
+            print(f"[Naver DataLab error] {type(e).__name__} {getattr(e, 'code', '')}")
 
     # Example data: one point per period, stable for the same keyword
     rng = example_rng(keyword, f"naver_{unit}_{w.start}_{w.end}")
@@ -140,10 +125,22 @@ def search_naver_datalab_custom(
     if not valid_groups:
         raise ValueError("최소 1개 이상의 주제어와 검색어를 입력해주세요.")
 
+    time_unit = time_unit if time_unit in ("date", "week", "month") else "month"
+    unit = {"date": "day", "week": "week", "month": "month"}[time_unit]
+    try:
+        first, last = whole_periods(unit, datetime.date.fromisoformat(start_date), datetime.date.fromisoformat(end_date))
+    except PeriodError:
+        raise
+    except ValueError:
+        raise ValueError("날짜는 YYYY-MM-DD 형식으로 입력해주세요.")
+    # The week or month still in progress is left out: a half-counted last period always looks like a drop.
+    start_date, end_date = first.isoformat(), last.isoformat()
+    w = Window(unit, first, last, f"{start_date} ~ {end_date}", custom=True)
+
     body_dict: Dict[str, Any] = {
         "startDate": start_date,
         "endDate": end_date,
-        "timeUnit": time_unit if time_unit in ("date", "week", "month") else "month",
+        "timeUnit": time_unit,
         "keywordGroups": valid_groups[:5]
     }
     if device in ("pc", "mo"):
@@ -159,53 +156,26 @@ def search_naver_datalab_custom(
     raw_results = None
 
     if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET:
-        # 1. Try NCP API Hub
         try:
             raw_results = _request_datalab_full(
-                "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
+                "https://openapi.naver.com/v1/datalab/search",
                 {
-                    "X-NCP-APIGW-API-KEY-ID": NAVER_CLIENT_ID.strip(),
-                    "X-NCP-APIGW-API-KEY": NAVER_CLIENT_SECRET.strip(),
+                    "X-Naver-Client-Id": NAVER_CLIENT_ID.strip(),
+                    "X-Naver-Client-Secret": NAVER_CLIENT_SECRET.strip(),
                 },
                 encoded_body,
             )
         except Exception as e:
-            print(f"[DataLab Custom Hub API error] {e}")
-
-        # 2. Try Legacy Developers API
-        if raw_results is None:
-            try:
-                raw_results = _request_datalab_full(
-                    "https://openapi.naver.com/v1/datalab/search",
-                    {
-                        "X-Naver-Client-Id": NAVER_CLIENT_ID.strip(),
-                        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET.strip(),
-                    },
-                    encoded_body,
-                )
-            except Exception as e:
-                print(f"[DataLab Custom Legacy API error] {e}")
+            # Type and status only: the exception text can carry the request URL.
+            print(f"[DataLab studio error] {type(e).__name__} {getattr(e, 'code', '')}")
 
     is_live = raw_results is not None
 
     # Fallback simulation if no API keys or call failed
     if raw_results is None:
         raw_results = []
-        # Generate points between start_date and end_date
-        try:
-            dt_start = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
-            dt_end = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-        except Exception:
-            dt_start = datetime.date.today() - datetime.timedelta(days=365)
-            dt_end = datetime.date.today()
-
-        periods = []
-        curr = dt_start
-        step_days = 30 if time_unit == "month" else (7 if time_unit == "week" else 1)
-        while curr <= dt_end and len(periods) < 120:
-            fmt = "%Y-%m-%d" if time_unit == "date" else ("%Y-%m-%d" if time_unit == "week" else "%Y-%m-01")
-            periods.append(curr.strftime(fmt))
-            curr += datetime.timedelta(days=step_days)
+        # One point per period, keyed the way DataLab keys them (first day of each period)
+        periods = [d.isoformat() for d in period_starts(w)][-400:]
 
         for idx, g in enumerate(valid_groups):
             rng = example_rng(g["groupName"], f"datalab_{idx}")
