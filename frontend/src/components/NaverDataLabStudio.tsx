@@ -9,6 +9,7 @@ import {
   Download,
   AlertCircle,
 } from 'lucide-react';
+import { changeText, changeTone } from '../utils/change';
 import {
   ResponsiveContainer,
   LineChart,
@@ -634,10 +635,12 @@ export const NaverDataLabStudio: React.FC<NaverDataLabStudioProps> = ({
                       </span>
                       <span
                         className={`font-mono font-black text-sm ${
-                          (group.change_pct ?? 0) >= 0 ? 'text-emerald-600 dark:text-[#A8FF1A]' : 'text-rose-600 dark:text-[#F34238]'
+                          changeTone(group.change_pct) === 'none'
+                            ? 'text-slate-500 dark:text-[#AEAEAE]'
+                            : (group.change_pct ?? 0) >= 0 ? 'text-emerald-600 dark:text-[#A8FF1A]' : 'text-rose-600 dark:text-[#F34238]'
                         }`}
                       >
-                        {(group.change_pct ?? 0) >= 0 ? `+${group.change_pct}%` : `${group.change_pct}%`}
+                        {changeText(group.change_pct)}
                       </span>
                       <span className="text-[10px] text-slate-400 block">
                         변동 모멘텀

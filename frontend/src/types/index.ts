@@ -18,10 +18,10 @@ export interface PlatformMetric {
   display_name: string;
   icon: string;
   relative_index: number;
-  /** Last full period against the one before it, in percent */
-  change_pct: number;
-  /** Last period against the first one in the window, in percent */
-  range_change_pct: number;
+  /** Last full period against the one before it, in percent; null: too little data (a 0) */
+  change_pct: number | null;
+  /** Last period against the first one in the window, in percent; null: too little data */
+  range_change_pct: number | null;
   status: 'rising' | 'stable' | 'cooling';
   primary_metric_label: string;
   primary_metric_value: string;
@@ -80,7 +80,7 @@ export interface DataLabGroupResult {
   peak_period?: string;
   peak_ratio?: number;
   latest_ratio?: number;
-  change_pct?: number;
+  change_pct?: number | null;
 }
 
 export interface DataLabSearchResponse {
@@ -108,7 +108,7 @@ export interface GoogleKeywordSummary {
   peak_value: number;
   average_value: number;
   latest_value: number;
-  change_pct: number;
+  change_pct: number | null;
   related_queries: string[];
 }
 

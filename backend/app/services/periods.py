@@ -160,15 +160,31 @@ def period_starts(w: Window) -> list:
     return starts
 
 
-def change_pct(series: list) -> float:
-    """Change of the last period against the one before it, in percent."""
+def change_pct(series: list) -> Optional[float]:
+    """Change of the last period against the one before it, in percent (None: see pct)."""
     if len(series) < 2:
-        return 0.0
+        return None
     return pct(series[-2], series[-1])
 
 
-def pct(before: float, after: float) -> float:
-    return round(((after - before) / max(before, 1)) * 100, 1)
+def pct(before: float, after: float) -> Optional[float]:
+    """Percent change, or None when either side is 0.
+
+    Google Trends and Naver DataLab report 0 when a keyword has too little search volume to
+    measure, not when nobody searched. A change to or from 0 would read as -100% or a huge rise,
+    so it is reported as "too little data" instead.
+    """
+    if before <= 0 or after <= 0:
+        return None
+    return round(((after - before) / before) * 100, 1)
+
+
+TOO_LITTLE_DATA = "데이터 부족"
+
+
+def change_text(change: Optional[float]) -> str:
+    """How a change reads on screen: "+12.3%" or "데이터 부족"."""
+    return TOO_LITTLE_DATA if change is None else f"{change:+}%"
 
 
 def is_google_weekly(dates: list) -> bool:

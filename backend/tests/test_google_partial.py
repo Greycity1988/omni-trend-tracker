@@ -30,8 +30,11 @@ class GooglePartialPeriodTests(unittest.TestCase):
 
     def test_change_pct(self):
         self.assertEqual(change_pct([50, 60]), 20.0)
-        self.assertEqual(change_pct([0, 3]), 300.0)
-        self.assertEqual(change_pct([70]), 0.0)
+        self.assertEqual(change_pct([0.5, 1]), 100.0)  # small values are compared as they are
+        # A 0 means "too little data" on Google Trends and Naver DataLab, so no percentage
+        self.assertIsNone(change_pct([0, 3]))
+        self.assertIsNone(change_pct([10.6, 0]))
+        self.assertIsNone(change_pct([70]))
 
     def test_weekly_overview_uses_full_weeks_in_the_window(self):
         w = window("week")
