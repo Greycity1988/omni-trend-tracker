@@ -65,3 +65,16 @@ class DataLabStudioTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NaverErrorLogTests(unittest.TestCase):
+    def test_error_log_names_naver_code_without_request_details(self):
+        import io
+        import urllib.error
+        body = io.BytesIO(json.dumps({"errorCode": "024", "errorMessage": "Authentication failed"}).encode())
+        err = urllib.error.HTTPError("https://openapi.naver.com/v1/datalab/search?x=SECRET", 401, "Unauthorized", {}, body)
+        text = naver._naver_error(err)
+        self.assertIn("401", text)
+        self.assertIn("errorCode=024", text)
+        self.assertNotIn("SECRET", text)
+        self.assertNotIn("openapi", text)

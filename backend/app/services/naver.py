@@ -31,6 +31,21 @@ def _request_datalab_full(url: str, headers: Dict[str, str], body: bytes) -> Opt
         return json.loads(response.read().decode("utf-8")).get("results", [])
 
 
+def _naver_error(e: Exception) -> str:
+    """Type, status and Naver's own error code/message for the logs (never the request or keys).
+
+    Naver answers failures with {"errorCode": "024", "errorMessage": "Authentication failed ..."},
+    which tells a wrong key apart from a missing API permission or a used-up daily quota.
+    """
+    text = f"{type(e).__name__} {getattr(e, 'code', '')}"
+    try:
+        body = json.loads(e.read().decode("utf-8"))  # HTTPError carries the response body
+        text += f" errorCode={str(body.get('errorCode', ''))[:20]} errorMessage={str(body.get('errorMessage', ''))[:120]}"
+    except Exception:
+        pass
+    return text
+
+
 LAST_PERIOD = {"day": "어제", "week": "지난주", "month": "지난달"}
 LAST_IN_RANGE = {"day": "마지막 날", "week": "마지막 주", "month": "마지막 달"}
 
@@ -88,7 +103,7 @@ def fetch_naver_trend(keyword: str, unit="month") -> Dict[str, Any]:
             if data_points:
                 return live(data_points)
         except Exception as e:
-            print(f"[Naver DataLab error] {type(e).__name__} {getattr(e, 'code', '')}")
+            print(f"[Naver DataLab error] {_naver_error(e)}")
 
     return naver_example(keyword, w)
 
@@ -171,8 +186,7 @@ def search_naver_datalab_custom(
                 encoded_body,
             )
         except Exception as e:
-            # Type and status only: the exception text can carry the request URL.
-            print(f"[DataLab studio error] {type(e).__name__} {getattr(e, 'code', '')}")
+            print(f"[DataLab studio error] {_naver_error(e)}")
 
     is_live = raw_results is not None
 
