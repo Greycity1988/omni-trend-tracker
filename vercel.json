@@ -3,6 +3,7 @@
   "installCommand": "cd frontend && npm ci",
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
+  "regions": ["icn1"],
   "functions": {
     "api/index.py": { "maxDuration": 30, "excludeFiles": "{frontend/**,docs/**,scripts/**,backend/tests/**}" }
   },
