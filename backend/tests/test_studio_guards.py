@@ -84,3 +84,14 @@ class ClientIpTests(unittest.TestCase):
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         self.assertIs(mod.app, main.app)
+
+
+class VercelRequirementsTests(unittest.TestCase):
+    def test_root_requirements_are_plain_pins(self):
+        """Vercel's Python builder cannot parse "-r" includes in the root requirements.txt."""
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[2] / "requirements.txt"
+        lines = [l.strip() for l in root.read_text().splitlines() if l.strip() and not l.strip().startswith("#")]
+        self.assertTrue(lines)
+        for line in lines:
+            self.assertRegex(line, r"^[A-Za-z0-9_.\-\[\]]+==[0-9][0-9A-Za-z.]*$", line)

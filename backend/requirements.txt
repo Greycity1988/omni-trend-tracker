@@ -1,11 +1,2 @@
-# Versions this app is tested with (Python 3.12; needs Python 3.10+). Upgrade on purpose, then re-run the tests.
-fastapi==0.165.0
-starlette==1.10.0
-uvicorn==0.54.0
-pydantic==2.14.3
-requests==2.34.2
-urllib3==2.8.0
-httpx==0.28.1
-pytrends==4.9.2
-python-dotenv==1.2.4
-pandas==3.1.1
+# The pins live in the repository root (Vercel reads that file and cannot follow "-r" includes).
+-r ../requirements.txt
