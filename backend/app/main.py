@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import os
 import datetime
 import time
@@ -22,8 +23,8 @@ from .models import (
     GoogleTrendsSearchRequest,
     GoogleTrendsSearchResponse,
 )
-from .services.naver import fetch_naver_trend, search_naver_datalab_custom
-from .services.google import fetch_google_trend, search_google_trends_custom
+from .services.naver import fetch_naver_trend, naver_example, search_naver_datalab_custom
+from .services.google import fetch_google_trend, google_example, search_google_trends_custom
 from .services.periods import PeriodError, custom_window, window
 
 app = FastAPI(
@@ -54,6 +55,17 @@ FETCHERS = {
     "naver": lambda keyword, unit: fetch_naver_trend(keyword, unit),
     "google": lambda keyword, unit: fetch_google_trend(keyword, unit),
 }
+# Shown instead when a platform does not answer in time
+EXAMPLES = {"naver": naver_example, "google": google_example}
+
+# Vercel stops the function at 30 s (vercel.json maxDuration). Answer well before that: a platform
+# that is still busy is shown as example data, and a studio search returns a clear message.
+FETCH_DEADLINE_SECONDS = 20
+STUDIO_DEADLINE_SECONDS = 22
+# Own pool, not the event loop's default one: a call that overran its deadline keeps its thread
+# until the platform answers or its own timeout ends, and must not hold up anything else.
+_pool = concurrent.futures.ThreadPoolExecutor(max_workers=16)
+
 PLATFORM_NAMES = {
     "naver": "네이버 데이터랩",
     "google": "구글 트렌드",
@@ -141,9 +153,15 @@ async def get_omni_trend(
     check_rate_limit(client_ip(request))
 
     # Run the enabled platform fetchers concurrently in parallel threads
-    fetched = await asyncio.gather(
-        *(asyncio.to_thread(FETCHERS[name], keyword, w) for name in ENABLED_PLATFORMS)
-    )
+    async def fetch(name: str) -> dict:
+        try:
+            loop = asyncio.get_running_loop()
+            return await asyncio.wait_for(loop.run_in_executor(_pool, FETCHERS[name], keyword, w), FETCH_DEADLINE_SECONDS)
+        except asyncio.TimeoutError:
+            print(f"[{name} timeout] no answer in {FETCH_DEADLINE_SECONDS}s, showing example data")
+            return EXAMPLES[name](keyword, w)
+
+    fetched = await asyncio.gather(*(fetch(name) for name in ENABLED_PLATFORMS))
     results = dict(zip(ENABLED_PLATFORMS, fetched))
     # Everything said about the keyword as a whole rests on live platforms only
     live = {name: res for name, res in results.items() if res.get("is_live")}
@@ -249,6 +267,16 @@ def check_studio_request(request: Request, words: list) -> None:
     check_rate_limit(client_ip(request))
 
 
+def run_studio(label: str, fn, **kwargs):
+    """Run a blocking studio search with a time limit; the caller maps errors to HTTP answers."""
+    future = _pool.submit(lambda: fn(**kwargs))
+    try:
+        return future.result(timeout=STUDIO_DEADLINE_SECONDS)
+    except concurrent.futures.TimeoutError:
+        print(f"[{label} timeout] no answer in {STUDIO_DEADLINE_SECONDS}s")
+        raise HTTPException(status_code=504, detail=f"{label}가 제때 응답하지 않았습니다. 잠시 후 다시 시도해주세요.")
+
+
 def studio_error(label: str, err: Exception) -> HTTPException:
     # The detail goes to the browser: never include the exception text (it can carry request URLs).
     print(f"[{label} error] {type(err).__name__}")
@@ -262,7 +290,9 @@ def datalab_search(req: DataLabSearchRequest, request: Request):
     """Naver DataLab multi-topic search query identical to datalab.naver.com."""
     check_studio_request(request, [g.group_name for g in req.keyword_groups] + [k for g in req.keyword_groups for k in g.keywords])
     try:
-        res = search_naver_datalab_custom(
+        res = run_studio(
+            "네이버 데이터랩",
+            search_naver_datalab_custom,
             start_date=req.start_date,
             end_date=req.end_date,
             time_unit=req.time_unit,
@@ -272,6 +302,8 @@ def datalab_search(req: DataLabSearchRequest, request: Request):
             ages=req.ages,
         )
         return res
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -283,13 +315,17 @@ def google_trends_search(req: GoogleTrendsSearchRequest, request: Request):
     """Google Trends multi-keyword comparison query (1~5 keywords)."""
     check_studio_request(request, req.keywords)
     try:
-        res = search_google_trends_custom(
+        res = run_studio(
+            "구글 트렌드",
+            search_google_trends_custom,
             keywords=req.keywords,
             timeframe=req.timeframe,
             geo=req.geo,
             gprop=req.gprop,
         )
         return res
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

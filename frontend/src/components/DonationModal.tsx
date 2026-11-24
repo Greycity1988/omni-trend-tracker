@@ -62,7 +62,7 @@ export const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="후원하기" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white dark:border-[#26272c] dark:bg-[#141416] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900 dark:text-white transition-colors">
         {/* Header */}
         <div className="p-5 border-b border-slate-200 dark:border-[#26272c] flex items-center justify-between flex-shrink-0">

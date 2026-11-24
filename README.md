@@ -32,7 +32,7 @@
 
    | 채널 | 출처 | 필요한 설정 |
    |---|---|---|
-   | 네이버 | 네이버 데이터랩 검색어 트렌드 API (하루 1,000회 무료) | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` |
+   | 네이버 | 네이버 데이터랩 검색어 트렌드 API (네이버 클라우드 NAVER API HUB 키, 또는 예전 네이버 개발자 센터 키) | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` |
    | 구글 | Google Trends (pytrends) | 없음 |
 
    - 두 채널 모두 **상대 지수**입니다. 실제 검색 건수는 나오지 않습니다.

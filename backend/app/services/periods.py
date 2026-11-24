@@ -86,12 +86,13 @@ def window(unit: str, today: Optional[datetime.date] = None) -> Window:
     raise PeriodError(f"알 수 없는 단위입니다: {unit}")
 
 
-def custom_window(unit: str, start: datetime.date, end: datetime.date,
-                  today: Optional[datetime.date] = None) -> Window:
-    """A user-chosen range, widened to whole periods and trimmed to finished ones.
+def whole_periods(unit: str, start: datetime.date, end: datetime.date,
+                  today: Optional[datetime.date] = None) -> tuple:
+    """A chosen range widened to whole periods and trimmed to finished ones: (start, end).
 
     A week runs Monday to Sunday and a month from the 1st to its last day. The range is widened
-    so the chosen days are covered; a last period that has not finished yet is dropped.
+    so the chosen days are covered; a last period that has not finished yet is dropped, so the
+    last point is never a half-counted period that looks like a drop.
     """
     if unit not in UNITS:
         raise PeriodError(f"알 수 없는 단위입니다: {unit}")
@@ -116,7 +117,13 @@ def custom_window(unit: str, start: datetime.date, end: datetime.date,
             end = _month_start(end) - ONE_DAY
     if end < start:
         raise PeriodError(f"선택한 기간에 끝난 {LABEL[unit]} 단위 구간이 없습니다. 기간을 넓히거나 다른 단위를 고르세요.")
+    return start, end
 
+
+def custom_window(unit: str, start: datetime.date, end: datetime.date,
+                  today: Optional[datetime.date] = None) -> Window:
+    """A user-chosen range for the cross-channel view (see whole_periods), within Google's limits."""
+    start, end = whole_periods(unit, start, end, today)
     w = Window(unit, start, end, f"{start.isoformat()} ~ {end.isoformat()}", custom=True)
     limit = MAX_DAYS[unit]
     if limit and w.days > limit:

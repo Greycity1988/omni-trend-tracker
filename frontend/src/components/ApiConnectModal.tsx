@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   X,
   KeyRound,
@@ -20,10 +20,19 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
   onClose,
   status,
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="플랫폼 API 연동 상태" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-200 bg-white dark:border-[#26272c] dark:bg-[#141416] shadow-2xl overflow-hidden flex flex-col text-slate-900 dark:text-white transition-colors">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 dark:border-[#202126] flex items-center justify-between">
@@ -41,7 +50,10 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="닫기"
+            title="닫기 (Esc)"
             className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-[#AEAEAE] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#202126] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -98,17 +110,17 @@ export const ApiConnectModal: React.FC<ApiConnectModalProps> = ({
             <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700 dark:text-[#AEAEAE]">
               <li>
                 <a
-                  href="https://developers.naver.com/apps/#/register"
+                  href="https://api.ncloud-docs.com/docs/naver-api-hub-search-trend"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-700 dark:text-[#A8FF1A] font-semibold hover:underline inline-flex items-center gap-1"
                 >
-                  네이버 개발자 센터 <ExternalLink className="w-3 h-3" />
+                  네이버 클라우드 NAVER API HUB <ExternalLink className="w-3 h-3" />
                 </a>
-                에서 애플리케이션을 등록하고 사용 API로 ‘데이터랩(검색어 트렌드)’을 고릅니다.
+                에서 ‘검색어 트렌드’ API 키(Client ID, Client Secret)를 발급받습니다. 예전에 네이버 개발자 센터에서 받은 데이터랩 키도 그대로 쓸 수 있습니다.
               </li>
-              <li>발급된 Client ID와 Client Secret을 <code className="font-mono">backend/.env</code>의 <code className="font-mono">NAVER_CLIENT_ID</code>, <code className="font-mono">NAVER_CLIENT_SECRET</code>에 넣습니다.</li>
-              <li>백엔드 서버를 다시 켜면 적용됩니다. 하루 1,000회까지 무료입니다.</li>
+              <li>직접 실행할 때는 발급된 Client ID와 Client Secret을 <code className="font-mono">backend/.env</code>의 <code className="font-mono">NAVER_CLIENT_ID</code>, <code className="font-mono">NAVER_CLIENT_SECRET</code>에 넣습니다.</li>
+              <li>백엔드 서버를 다시 켜면 적용됩니다. Vercel에 배포했다면 같은 이름의 환경변수로 넣고 다시 배포합니다.</li>
             </ol>
           </div>
 

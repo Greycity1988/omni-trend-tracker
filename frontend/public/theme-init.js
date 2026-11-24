@@ -3,7 +3,8 @@
 (function () {
   try {
     var saved = localStorage.getItem('omni_theme') || localStorage.getItem('antigravity_theme');
-    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    // Same rule as useTheme: a saved choice wins, otherwise dark (the app's default).
+    if (saved !== 'light') {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
     } else {

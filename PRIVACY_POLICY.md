@@ -1,32 +1,36 @@
-# Privacy Policy for Omni Trend Tracker
+# 개인정보처리방침 (Omni Trend Tracker)
 
-**Last updated:** November 14, 2026
+최종 수정: 2026-11-24
 
-## 1. Introduction
-Omni Trend Tracker ("we", "our", or "the Service") is a cross-platform keyword intelligence and trend visualization dashboard. This Privacy Policy outlines how our service accesses, processes, and protects data when interacting with third-party APIs, including Pinterest API.
+## 이 문서가 다루는 것
 
-## 2. Information We Collect
-- **Public Trend & Aggregated Keyword Data:** We access publicly available keyword trend metrics, relative search popularity indexes, and aggregated search volume trends provided via third-party developer APIs.
-- **No Personal Identifiable Information (PII):** We do NOT collect, store, sell, or share personal user profiles, passwords, private pins, private boards, or sensitive personal data.
+- Omni Trend Tracker(OTT, omni-trend-tracker.vercel.app)는 네이버 데이터랩과 구글 트렌드의 검색 관심도를 비교해 보여 주는 무료 도구입니다.
+- 회원가입, 로그인, 쿠키, 방문 분석 도구가 없습니다. 이 문서는 OTT를 쓸 때 어떤 정보가 어디로 가는지 적은 것입니다.
 
-## 3. How We Use the Data
-We use API data solely to:
-- Generate aggregated trend timelines and relative interest scores.
-- Compare keyword popularity patterns across search and discovery platforms.
-- Display analytical charts on the user's localized dashboard.
+## 입력한 키워드
 
-## 4. Third-Party Services
-Our service interacts with developer APIs governed by their respective terms and policies:
-- Pinterest API Terms of Service & Privacy Policy
-- Naver Cloud Platform & NAVER API HUB
-- Google Trends & Google Ads API
-- Meta Graph API
+- 조회한 키워드는 OTT 서버를 거쳐 네이버 데이터랩 API와 구글 트렌드로 보내집니다. 각 회사의 개인정보처리방침이 적용됩니다.
+- OTT 서버는 같은 조회를 다시 하지 않도록 결과를 서버 메모리에 최대 10분간 보관합니다. 데이터베이스나 파일에 저장하지 않습니다.
+- 키워드는 요청 주소에 들어가므로 호스팅 회사(Vercel)의 접속 기록에 남을 수 있습니다. 개인정보는 키워드로 입력하지 마세요.
 
-## 5. Data Security & Storage
-- API tokens and credentials are encrypted and stored strictly within the user's local secure environment (`.env`) and are never transmitted to external unauthorized servers.
-- No personal user browsing history or telemetry is sold to third parties.
+## IP 주소
 
-## 6. Contact Us
-For questions regarding this Privacy Policy or Omni Trend Tracker:
-- **Developer / Organization:** Greycity1988
-- **GitHub Repository:** https://github.com/Greycity1988/omni-trend-tracker
+- 짧은 시간에 너무 많이 조회하지 못하도록(1분에 10회) 서버 메모리에서 IP 주소를 셉니다. 저장하지 않고 몇 분 안에 지워집니다.
+- 호스팅 회사 Vercel은 서비스 운영을 위해 IP 주소, 접속 시각, 요청 주소를 기록합니다. Vercel의 개인정보처리방침이 적용됩니다.
+
+## 글꼴
+
+- 화면 글꼴을 Google Fonts와 jsDelivr에서 불러옵니다. 이때 브라우저가 두 서비스에 IP 주소를 보냅니다.
+
+## 브라우저에 저장하는 것
+
+- 라이트·다크 모드 선택만 브라우저 저장소(localStorage)에 저장합니다. 서버로 보내지 않습니다.
+
+## 건의와 후원
+
+- "Feedbacks & feature ideas"는 GitHub 이슈 작성 화면을 엽니다. 올린 이슈는 공개되며 GitHub의 정책이 적용됩니다. 내용을 확인하고 올리세요.
+- 후원 링크는 Ko-fi로 이동합니다. OTT는 결제 정보를 받지 않습니다.
+
+## 문의
+
+- GitHub 이슈: https://github.com/Greycity1988/omni-trend-tracker/issues

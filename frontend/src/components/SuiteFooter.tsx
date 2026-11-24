@@ -10,6 +10,8 @@ interface SuiteFooterProps {
   /** Optional: make the emblem clickable (ACV opens its logo modal) */
   onEmblemClick?: () => void;
   emblemTitle?: string;
+  /** Optional: link to the app's privacy policy on the last line */
+  privacyUrl?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ export const SuiteFooter: React.FC<SuiteFooterProps> = ({
   onOpenFeedback,
   onEmblemClick,
   emblemTitle,
+  privacyUrl,
 }) => (
   <footer className="mt-auto border-t border-slate-200 bg-white dark:border-[#26272c] dark:bg-[#141416] py-10 px-4 text-center text-xs text-slate-500 dark:text-[#AEAEAE] space-y-3 flex flex-col items-center justify-center transition-colors">
     {onEmblemClick ? (
@@ -72,6 +75,14 @@ export const SuiteFooter: React.FC<SuiteFooterProps> = ({
     </p>
     <p className="text-[11px] text-slate-500 dark:text-[#6E6E6E]">
       {appName} • Part of Marketing Intelligence Suite • Desktop Optimized
+      {privacyUrl && (
+        <>
+          {' • '}
+          <a href={privacyUrl} className="underline hover:text-slate-700 dark:hover:text-white">
+            개인정보처리방침
+          </a>
+        </>
+      )}
     </p>
   </footer>
 );

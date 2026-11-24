@@ -81,7 +81,7 @@ export const SuiteNavigationDrawer: React.FC<SuiteNavigationDrawerProps> = ({
       url: OTT_URL,
       icon: TrendingUp,
       iconColor: '#38BDF8',
-      isDeveloping: true,
+      isDeveloping: false,
     },
     {
       id: 'bep',
@@ -106,7 +106,7 @@ export const SuiteNavigationDrawer: React.FC<SuiteNavigationDrawerProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end animate-fadeIn">
+    <div role="dialog" aria-modal="true" aria-label="마케팅 스위트 메뉴" className="fixed inset-0 z-50 flex justify-end animate-fadeIn">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
